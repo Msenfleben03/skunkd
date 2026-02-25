@@ -32,7 +32,7 @@ Git repo initialized, GitHub repo created at https://github.com/Msenfleben03/sku
 
 ---
 
-### Task 0.2: Scaffold Vite + React + TypeScript Project
+### Task 0.2: Scaffold Vite + React + TypeScript Project -- DONE
 
 **Files:**
 - Create: `package.json`, `vite.config.ts`, `tsconfig.json`, `tsconfig.app.json`, `tsconfig.node.json`
@@ -71,7 +71,7 @@ git commit -m "chore: scaffold Vite + React + TypeScript project"
 
 ---
 
-### Task 0.3: Configure Tailwind CSS + shadcn/ui
+### Task 0.3: Configure Tailwind CSS + shadcn/ui -- DONE
 
 **Files:**
 - Modify: `package.json` (add deps)
@@ -122,7 +122,7 @@ git commit -m "chore: configure Tailwind CSS with SKUNK'D tokens and shadcn/ui"
 
 ---
 
-### Task 0.4: Configure Vitest
+### Task 0.4: Configure Vitest -- DONE
 
 **Files:**
 - Modify: `package.json` (add vitest deps)
@@ -179,7 +179,7 @@ git commit -m "chore: configure Vitest with Testing Library"
 
 ---
 
-### Task 0.5: Configure PWA Plugin
+### Task 0.5: Configure PWA Plugin -- DONE
 
 **Files:**
 - Modify: `package.json` (add vite-plugin-pwa)
@@ -218,7 +218,7 @@ git commit -m "chore: configure PWA with vite-plugin-pwa"
 
 ---
 
-### Task 0.6: Create Project CLAUDE.md
+### Task 0.6: Create Project CLAUDE.md -- DONE (completed as Task 0.5.2)
 
 **Files:**
 - Create: `CLAUDE.md`
@@ -597,7 +597,7 @@ git commit -m "chore: configure ECC continuous learning for SKUNK'D patterns"
 
 > **Critical:** This is the foundation. Every scoring function must be correct before any UI work. Reference `prototypes/cribbage-llm-build-instructions.md` for pitfalls.
 
-### Task 1.1: Card Types and Utilities
+### Task 1.1: Card Types and Utilities -- DONE
 
 **Files:**
 - Create: `src/engine/types.ts`
@@ -674,7 +674,7 @@ git commit -m "feat(engine): add card types, utilities, and game state types"
 
 ---
 
-### Task 1.2: Deck Creation and Shuffling
+### Task 1.2: Deck Creation and Shuffling -- DONE
 
 **Files:**
 - Create: `src/engine/deck.ts`
@@ -728,7 +728,7 @@ git commit -m "feat(engine): add deck creation and Fisher-Yates shuffle"
 
 ---
 
-### Task 1.3: Scoring — Fifteens
+### Task 1.3: Scoring — Fifteens -- DONE
 
 **Files:**
 - Create: `src/engine/scoring.ts`
@@ -767,7 +767,7 @@ git commit -m "feat(engine): add fifteens scoring with subset enumeration"
 
 ---
 
-### Task 1.4: Scoring — Pairs
+### Task 1.4: Scoring — Pairs -- DONE
 
 **Files:**
 - Modify: `src/engine/scoring.ts`
@@ -785,7 +785,7 @@ git commit -m "feat(engine): add pairs scoring"
 
 ---
 
-### Task 1.5: Scoring — Runs
+### Task 1.5: Scoring — Runs -- DONE
 
 **Files:**
 - Modify: `src/engine/scoring.ts`
@@ -836,7 +836,7 @@ git commit -m "feat(engine): add run scoring with duplicate-rank multipliers"
 
 ---
 
-### Task 1.6: Scoring — Flush and Nobs
+### Task 1.6: Scoring — Flush and Nobs -- DONE
 
 **Files:**
 - Modify: `src/engine/scoring.ts`
@@ -855,7 +855,7 @@ git commit -m "feat(engine): add flush and nobs scoring with crib flush rule"
 
 ---
 
-### Task 1.7: Scoring — Combined scoreHand()
+### Task 1.7: Scoring — Combined scoreHand() -- DONE
 
 **Files:**
 - Modify: `src/engine/scoring.ts`
@@ -901,7 +901,7 @@ git commit -m "feat(engine): add combined scoreHand with full breakdown"
 
 ---
 
-### Task 1.8: Pegging Scoring
+### Task 1.8: Pegging Scoring -- DONE
 
 **Files:**
 - Create: `src/engine/pegging.ts`
@@ -943,7 +943,7 @@ git commit -m "feat(engine): add pegging scoring with run/pair detection"
 
 ---
 
-### Task 1.9: Game State Machine
+### Task 1.9: Game State Machine -- DONE
 
 **Files:**
 - Create: `src/engine/gameState.ts`
