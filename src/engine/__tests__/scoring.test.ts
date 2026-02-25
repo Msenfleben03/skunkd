@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Card } from '../types';
 import { createCard } from '../types';
-import { scoreFifteens, scorePairs } from '../scoring';
+import { scoreFifteens, scorePairs, scoreRuns } from '../scoring';
 
 /** Helper to create cards concisely */
 function card(rank: Card['rank'], suit: Card['suit']): Card {
@@ -103,5 +103,62 @@ describe('scorePairs', () => {
   it('scores no pairs = 0 points', () => {
     const cards = [card('A', 'H'), card('3', 'S'), card('6', 'D'), card('9', 'C'), card('K', 'H')];
     expect(scorePairs(cards)).toBe(0);
+  });
+});
+
+describe('scoreRuns', () => {
+  it('scores a simple run of 3', () => {
+    const cards = [card('3', 'H'), card('4', 'S'), card('5', 'D'), card('9', 'C'), card('K', 'H')];
+    expect(scoreRuns(cards)).toBe(3);
+  });
+
+  it('scores a run of 4', () => {
+    const cards = [card('3', 'H'), card('4', 'S'), card('5', 'D'), card('6', 'C'), card('K', 'H')];
+    expect(scoreRuns(cards)).toBe(4);
+  });
+
+  it('scores a run of 5', () => {
+    const cards = [card('A', 'H'), card('2', 'S'), card('3', 'D'), card('4', 'C'), card('5', 'H')];
+    expect(scoreRuns(cards)).toBe(5);
+  });
+
+  it('scores double run: 3-4-4-5-6 = TWO runs of 4 = 8 points', () => {
+    const cards = [card('3', 'H'), card('4', 'S'), card('4', 'D'), card('5', 'C'), card('6', 'H')];
+    expect(scoreRuns(cards)).toBe(8);
+  });
+
+  it('scores double run of 3: 3-4-4-5 = TWO runs of 3 = 6 points', () => {
+    const cards = [card('3', 'H'), card('4', 'S'), card('4', 'D'), card('5', 'C'), card('K', 'H')];
+    expect(scoreRuns(cards)).toBe(6);
+  });
+
+  it('scores double-double run: 3-3-4-4-5 = FOUR runs of 3 = 12 points', () => {
+    const cards = [card('3', 'H'), card('3', 'S'), card('4', 'D'), card('4', 'C'), card('5', 'H')];
+    expect(scoreRuns(cards)).toBe(12);
+  });
+
+  it('scores triple run: 3-3-3-4-5 = THREE runs of 3 = 9 points', () => {
+    const cards = [card('3', 'H'), card('3', 'S'), card('3', 'D'), card('4', 'C'), card('5', 'H')];
+    expect(scoreRuns(cards)).toBe(9);
+  });
+
+  it('scores no run when cards are not consecutive', () => {
+    const cards = [card('2', 'H'), card('4', 'S'), card('6', 'D'), card('8', 'C'), card('10', 'H')];
+    expect(scoreRuns(cards)).toBe(0);
+  });
+
+  it('scores no run for only 2 consecutive ranks', () => {
+    const cards = [card('3', 'H'), card('4', 'S'), card('8', 'D'), card('J', 'C'), card('K', 'H')];
+    expect(scoreRuns(cards)).toBe(0);
+  });
+
+  it('scores run with face cards: J-Q-K', () => {
+    const cards = [card('J', 'H'), card('Q', 'S'), card('K', 'D'), card('2', 'C'), card('7', 'H')];
+    expect(scoreRuns(cards)).toBe(3);
+  });
+
+  it('scores run with A-2-3 (A is low)', () => {
+    const cards = [card('A', 'H'), card('2', 'S'), card('3', 'D'), card('8', 'C'), card('K', 'H')];
+    expect(scoreRuns(cards)).toBe(3);
   });
 });
