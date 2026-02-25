@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Card } from '../types';
 import { createCard } from '../types';
-import { scoreFifteens, scorePairs, scoreRuns, scoreFlush, scoreNobs } from '../scoring';
+import { scoreFifteens, scorePairs, scoreRuns, scoreFlush, scoreNobs, scoreHand } from '../scoring';
 
 /** Helper to create cards concisely */
 function card(rank: Card['rank'], suit: Card['suit']): Card {
@@ -230,5 +230,75 @@ describe('scoreNobs', () => {
     const hand = [card('J', 'H'), card('J', 'S'), card('7', 'D'), card('9', 'C')];
     const starter = card('K', 'S'); // J of Spades matches
     expect(scoreNobs(hand, starter)).toBe(1);
+  });
+});
+
+describe('scoreHand', () => {
+  it('scores the perfect 29-point hand', () => {
+    // 5H, 5S, 5D, JC with starter 5C
+    const hand = [card('5', 'H'), card('5', 'S'), card('5', 'D'), card('J', 'C')];
+    const starter = card('5', 'C');
+    const result = scoreHand(hand, starter, false);
+    expect(result.total).toBe(29);
+    expect(result.fifteens).toBe(16); // 8 fifteens
+    expect(result.pairs).toBe(12);    // double pair royal
+    expect(result.runs).toBe(0);
+    expect(result.flush).toBe(0);
+    expect(result.nobs).toBe(1);      // Jack matches starter suit
+  });
+
+  it('scores a zero-point hand', () => {
+    // A(1)+3+6+Q(10)+K(10) — no subset sums to 15, no pairs, no runs, no flush, no nobs
+    const hand = [card('A', 'H'), card('3', 'S'), card('6', 'D'), card('Q', 'C')];
+    const starter = card('K', 'S');
+    const result = scoreHand(hand, starter, false);
+    expect(result.total).toBe(0);
+    expect(result.fifteens).toBe(0);
+    expect(result.pairs).toBe(0);
+    expect(result.runs).toBe(0);
+    expect(result.flush).toBe(0);
+    expect(result.nobs).toBe(0);
+  });
+
+  it('differentiates hand vs crib flush scoring', () => {
+    // 4-card flush in hand = 4pts, in crib = 0pts
+    const hand = [card('2', 'H'), card('5', 'H'), card('8', 'H'), card('J', 'H')];
+    const starter = card('K', 'S'); // different suit
+    expect(scoreHand(hand, starter, false).flush).toBe(4);  // hand
+    expect(scoreHand(hand, starter, true).flush).toBe(0);   // crib
+  });
+
+  it('scores double-double run hand correctly', () => {
+    // 3H, 3S, 4D, 4C + starter 5H
+    // Runs: 3-3-4-4-5 = FOUR runs of 3 = 12
+    // Pairs: 3-3 + 4-4 = 4
+    // Fifteens: none (3+4+5=12, 3+3+4+5=15!) x2 ways = 4pts
+    // Actually: {3H,3S,4D,5H}=15, {3H,3S,4C,5H}=15 = 4pts
+    const hand = [card('3', 'H'), card('3', 'S'), card('4', 'D'), card('4', 'C')];
+    const starter = card('5', 'H');
+    const result = scoreHand(hand, starter, false);
+    expect(result.runs).toBe(12);
+    expect(result.pairs).toBe(4);
+  });
+
+  it('scores hand with fifteens + pairs + runs combined', () => {
+    // 7H, 8S, 8D, 9C + starter 10H
+    // Runs: 7-8-8-9-10 = TWO runs of 4 = 8
+    // Pairs: 8-8 = 2
+    // Fifteens: 7+8=15 x2 = 4pts
+    const hand = [card('7', 'H'), card('8', 'S'), card('8', 'D'), card('9', 'C')];
+    const starter = card('10', 'H');
+    const result = scoreHand(hand, starter, false);
+    expect(result.runs).toBe(8);
+    expect(result.pairs).toBe(2);
+    expect(result.fifteens).toBe(4);
+    expect(result.total).toBe(14);
+  });
+
+  it('returns ScoreBreakdown with all fields summing to total', () => {
+    const hand = [card('5', 'H'), card('5', 'S'), card('5', 'D'), card('J', 'C')];
+    const starter = card('5', 'C');
+    const result = scoreHand(hand, starter, false);
+    expect(result.fifteens + result.pairs + result.runs + result.flush + result.nobs).toBe(result.total);
   });
 });

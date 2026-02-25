@@ -1,4 +1,4 @@
-import type { Card } from './types';
+import type { Card, ScoreBreakdown } from './types';
 import { cardValue, rankOrder } from './types';
 
 /**
@@ -121,4 +121,30 @@ export function scoreFlush(
  */
 export function scoreNobs(hand: readonly Card[], starter: Card): number {
   return hand.some(c => c.rank === 'J' && c.suit === starter.suit) ? 1 : 0;
+}
+
+/**
+ * Score a complete hand (4 cards + starter).
+ * Combines fifteens, pairs, runs, flush, and nobs into a ScoreBreakdown.
+ */
+export function scoreHand(
+  hand: readonly Card[],
+  starter: Card,
+  isCrib: boolean,
+): ScoreBreakdown {
+  const allCards = [...hand, starter];
+  const fifteens = scoreFifteens(allCards);
+  const pairs = scorePairs(allCards);
+  const runs = scoreRuns(allCards);
+  const flush = scoreFlush(hand, starter, isCrib);
+  const nobs = scoreNobs(hand, starter);
+
+  return {
+    total: fifteens + pairs + runs + flush + nobs,
+    fifteens,
+    pairs,
+    runs,
+    flush,
+    nobs,
+  };
 }
