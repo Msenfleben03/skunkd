@@ -28,3 +28,17 @@ export function scoreFifteens(cards: readonly Card[]): number {
 
   return count * 2;
 }
+
+/**
+ * Score pairs: count all pairs of cards with matching rank.
+ * C(n,2) pairs for n cards of same rank. Returns 2 per pair.
+ */
+export function scorePairs(cards: readonly Card[]): number {
+  let count = 0;
+  for (let i = 0; i < cards.length; i++) {
+    for (let j = i + 1; j < cards.length; j++) {
+      if (cards[i].rank === cards[j].rank) count++;
+    }
+  }
+  return count * 2;
+}

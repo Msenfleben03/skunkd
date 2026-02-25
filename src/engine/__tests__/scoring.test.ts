@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Card } from '../types';
 import { createCard } from '../types';
-import { scoreFifteens } from '../scoring';
+import { scoreFifteens, scorePairs } from '../scoring';
 
 /** Helper to create cards concisely */
 function card(rank: Card['rank'], suit: Card['suit']): Card {
@@ -76,5 +76,32 @@ describe('scoreFifteens', () => {
     // But also: 9+4+A+? no... let me just check exhaustively
     // Only fifteen: A+4+J = 15
     expect(scoreFifteens(cards)).toBe(2);
+  });
+});
+
+describe('scorePairs', () => {
+  it('scores a single pair = 2 points', () => {
+    const cards = [card('5', 'H'), card('5', 'S'), card('3', 'D'), card('8', 'C'), card('K', 'H')];
+    expect(scorePairs(cards)).toBe(2);
+  });
+
+  it('scores pair royal (three of a kind) = 6 points', () => {
+    const cards = [card('7', 'H'), card('7', 'S'), card('7', 'D'), card('2', 'C'), card('K', 'H')];
+    expect(scorePairs(cards)).toBe(6);
+  });
+
+  it('scores double pair royal (four of a kind) = 12 points', () => {
+    const cards = [card('5', 'H'), card('5', 'S'), card('5', 'D'), card('5', 'C'), card('J', 'H')];
+    expect(scorePairs(cards)).toBe(12);
+  });
+
+  it('scores two different pairs = 4 points', () => {
+    const cards = [card('3', 'H'), card('3', 'S'), card('9', 'D'), card('9', 'C'), card('K', 'H')];
+    expect(scorePairs(cards)).toBe(4);
+  });
+
+  it('scores no pairs = 0 points', () => {
+    const cards = [card('A', 'H'), card('3', 'S'), card('6', 'D'), card('9', 'C'), card('K', 'H')];
+    expect(scorePairs(cards)).toBe(0);
   });
 });
