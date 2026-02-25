@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "instinct_dir": ".claude/homunculus/instincts",
+  "min_confidence": 0.6,
+  "max_instincts": 100,
+  "categories": ["scoring", "supabase", "react-game-ui", "multiplayer", "pwa", "llm-integration"],
+  "auto_evolve": false
+}
