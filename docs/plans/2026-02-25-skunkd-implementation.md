@@ -18,41 +18,17 @@
 5. Animations fifth
 6. Chat/social features last
 
+**GitHub Repo:** https://github.com/Msenfleben03/skunkd
+
+**ECC Foundation:** Everything Claude Code (ECC) plugin provides the foundation for directory processes, pipelines, documentation, and task handling. All ECC rules and skills are installed at `.claude/rules/` and `.claude/skills/`.
+
 ---
 
 ## Phase 0: Project Foundation
 
-### Task 0.1: Initialize Git Repository
+### Task 0.1: Initialize Git Repository -- DONE
 
-**Files:**
-- Create: `.gitignore`
-- Create: `README.md`
-
-**Step 1: Init git repo**
-
-```bash
-cd C:/Users/msenf/cribbage
-git init
-```
-
-**Step 2: Create .gitignore**
-
-```
-node_modules/
-dist/
-.env
-.env.local
-*.local
-.DS_Store
-coverage/
-```
-
-**Step 3: Initial commit**
-
-```bash
-git add .gitignore README.md docs/
-git commit -m "chore: init repo with design docs and prototypes"
-```
+Git repo initialized, GitHub repo created at https://github.com/Msenfleben03/skunkd, initial commit pushed with design docs, prototypes, and research.
 
 ---
 
@@ -302,6 +278,317 @@ PWA cribbage game with multiplayer and LLM coaching. See `docs/plans/2026-02-25-
 ```bash
 git add CLAUDE.md
 git commit -m "chore: add project CLAUDE.md with conventions and rules"
+```
+
+---
+
+## Phase 0.5: Claude Code Project Setup (ECC Foundation)
+
+> **ECC is the project's process backbone.** All development workflows, pipelines, documentation standards, and task handling flow through ECC skills, agents, rules, and hooks.
+
+### Task 0.5.1: ECC Rules and Skills -- DONE
+
+Installed to `.claude/` (project-level):
+
+**Rules (13 files in `.claude/rules/`):**
+- Common: agents.md, coding-style.md, git-workflow.md, hooks.md, patterns.md, performance.md, security.md, testing.md
+- TypeScript overrides: coding-style.md, hooks.md, patterns.md, security.md, testing.md
+
+**Skills (10 directories in `.claude/skills/`):**
+- frontend-patterns, backend-patterns, coding-standards, api-design
+- postgres-patterns, e2e-testing, tdd-workflow
+- security-review, verification-loop, cost-aware-llm-pipeline
+
+---
+
+### Task 0.5.2: Project CLAUDE.md with ECC Integration
+
+**Files:**
+- Create: `CLAUDE.md`
+
+Write project CLAUDE.md that:
+1. References ECC skills by name for each workflow phase
+2. Defines directory structure with ECC conventions
+3. Establishes ECC verification loop as the quality gate
+4. Maps ECC agents to project tasks:
+   - `build-error-resolver` → TypeScript/Vite build errors
+   - `e2e-runner` → Playwright tests for game flows
+   - `security-reviewer` → Supabase RLS, auth, Edge Functions
+   - `tdd-guide` → Game engine scoring tests
+5. Defines ECC commands for project workflows:
+   - `/tdd` → Enforce test-first for engine code
+   - `/e2e` → Generate and run game flow E2E tests
+   - `/verify` → Run full verification loop (build + type + lint + test)
+
+Include critical cribbage scoring rules (from build instructions) as guardrails.
+
+```bash
+git add CLAUDE.md
+git commit -m "chore: add project CLAUDE.md with ECC workflow integration"
+```
+
+---
+
+### Task 0.5.3: Custom Cribbage Scoring Guardrail Skill
+
+**Files:**
+- Create: `.claude/skills/cribbage-scoring/SKILL.md`
+
+A domain guardrail skill that activates when modifying `src/engine/scoring.ts`, `src/engine/pegging.ts`, or any scoring-related file. Content:
+
+```markdown
+---
+name: cribbage-scoring
+description: Cribbage scoring rules guardrail. Activates when working on scoring engine, pegging, or hand evaluation. Prevents the most common cribbage scoring bugs.
+---
+
+# Cribbage Scoring Rules (MUST NOT VIOLATE)
+
+## Fifteens
+- Check ALL subsets of size 2-5 (26 possible for a 5-card hand)
+- Do NOT use shortcuts that miss combinations
+- Use bitmask or recursive subset generation
+
+## Runs with Duplicates (THE #1 BUG)
+- 3-4-4-5-6 = TWO runs of 4 = 8 points (each 4 forms its own run)
+- 3-3-4-4-5 = FOUR runs of 3 = 12 points (double-double run)
+- 3-3-3-4-5 = THREE runs of 3 = 9 points (triple run)
+
+## Flush Rules
+- Hand: 4-card flush (all 4 in hand same suit) = 4 points
+- Hand: 5-card flush (hand + starter) = 5 points
+- Crib: MUST be 5-card flush or NOTHING (4-card crib flush = 0 points)
+
+## Nobs vs His Heels
+- Nobs: Jack in HAND matching STARTER suit = 1 point
+- His Heels: Jack AS the STARTER = 2 points to dealer
+- These are different scoring events
+
+## Pegging
+- Run detection: only CONSECUTIVELY played cards count
+- Pairs: must be CONSECUTIVE (a different rank breaks the sequence)
+- "Go" means CANNOT play (not a choice) — validate before allowing
+- After Go, other player keeps playing until they also can't
+
+## Game Flow
+- Non-dealer ALWAYS plays first in pegging AND scores first in Show
+- Game ends THE INSTANT someone reaches 121
+- Dealer alternates EVERY hand
+
+## Testing Requirements
+- Every scoring function MUST have tests for the edge cases above
+- Test the 29-point hand (5H, 5S, 5D, JC + starter 5C)
+- Test zero-point hands
+- Test double-double runs explicitly
+```
+
+```bash
+git add .claude/skills/cribbage-scoring/
+git commit -m "feat(skill): add cribbage scoring guardrail skill"
+```
+
+---
+
+### Task 0.5.4: Custom Supabase RLS Guardrail Skill
+
+**Files:**
+- Create: `.claude/skills/supabase-rls/SKILL.md`
+
+Activates when working on Supabase migrations, RLS policies, or Edge Functions. Enforces card security model from design doc.
+
+```markdown
+---
+name: supabase-rls
+description: Supabase Row Level Security guardrail for SKUNK'D multiplayer card game. Activates when writing migrations, RLS policies, or Edge Functions. Prevents card data leaks.
+---
+
+# SKUNK'D Card Security Model
+
+## Core Principle
+Players must NEVER see opponent cards until the Show phase.
+
+## RLS Requirements
+- hand_cards: users see only rows where user_id = auth.uid()
+- During Show phase: reveal via server-side state transition, not client query
+- Card dealing MUST happen in Edge Function (server-side), never client
+- Crib contents hidden until SHOW_CRIB phase
+
+## Edge Function Security
+- All card shuffling and dealing: server-side only
+- Validate game_id ownership before dealing
+- Rate limit deal requests (prevent brute-force deck enumeration)
+- Never return opponent hand data in any response
+
+## Auth Requirements
+- Guest users get anonymous Supabase auth session
+- Guest game data is ephemeral (no stats tracking)
+- Account upgrade preserves game history
+```
+
+```bash
+git add .claude/skills/supabase-rls/
+git commit -m "feat(skill): add Supabase RLS card security guardrail"
+```
+
+---
+
+### Task 0.5.5: Project-Level Settings and Permissions
+
+**Files:**
+- Modify: `.claude/settings.local.json`
+
+Update project settings for SKUNK'D development:
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Bash(npm run :*)",
+      "Bash(npx vitest :*)",
+      "Bash(npx playwright :*)",
+      "Bash(git :*)",
+      "Bash(npx shadcn@latest :*)",
+      "Bash(npx supabase :*)"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.local)"
+    ]
+  }
+}
+```
+
+```bash
+git add .claude/settings.local.json
+git commit -m "chore: configure project permissions for SKUNK'D dev workflow"
+```
+
+---
+
+### Task 0.5.6: Custom Project Commands
+
+**Files:**
+- Create: `.claude/commands/test-engine.md`
+- Create: `.claude/commands/check-scoring.md`
+- Create: `.claude/commands/deploy-preview.md`
+
+**/test-engine** — Run game engine tests only:
+```markdown
+Run all game engine unit tests:
+npx vitest run src/engine/ --reporter=verbose
+
+If any test fails, use @superpowers:systematic-debugging to diagnose.
+Report: total tests, passing, failing, coverage for src/engine/.
+```
+
+**/check-scoring** — Validate scoring correctness:
+```markdown
+Run scoring-specific tests with coverage:
+npx vitest run src/engine/__tests__/scoring.test.ts src/engine/__tests__/pegging.test.ts --coverage
+
+Verify these critical edge cases are covered:
+- 29-point hand (5H,5S,5D,JC + 5C starter)
+- Double-double run (3-3-4-4-5)
+- Triple run (3-3-3-4-5)
+- Crib flush (must be 5-card)
+- Pegging run break detection
+
+Use @cribbage-scoring skill for rules reference.
+```
+
+**/deploy-preview** — Deploy preview to Vercel:
+```markdown
+Build and deploy a preview:
+1. npm run build
+2. npx vercel --yes
+3. Report the preview URL
+4. Remind user to test on mobile viewport
+```
+
+```bash
+mkdir -p .claude/commands
+git add .claude/commands/
+git commit -m "feat(commands): add /test-engine, /check-scoring, /deploy-preview commands"
+```
+
+---
+
+### Task 0.5.7: Custom Project Agents
+
+**Files:**
+- Create: `.claude/agents/scoring-validator.md`
+
+**scoring-validator** agent — Autonomous scoring test validator:
+
+```markdown
+---
+name: scoring-validator
+description: Use this agent when modifying scoring logic, adding new scoring tests, or when a scoring test fails. Validates all cribbage scoring edge cases.
+
+<example>
+Context: Developer modified the scoring engine
+user: "I updated the run detection algorithm in scoring.ts"
+assistant: "Let me use the scoring-validator agent to verify all edge cases still pass"
+<commentary>Scoring changes require comprehensive validation to prevent regression</commentary>
+</example>
+
+model: haiku
+color: red
+tools: ["Read", "Bash", "Grep", "Glob"]
+---
+
+You are a cribbage scoring validation specialist. When triggered:
+
+1. Run all scoring tests: `npx vitest run src/engine/__tests__/scoring.test.ts --reporter=verbose`
+2. Run all pegging tests: `npx vitest run src/engine/__tests__/pegging.test.ts --reporter=verbose`
+3. Verify these specific edge cases are tested and passing:
+   - 29-point hand (5H,5S,5D,JC + 5C starter) = 29
+   - Zero-point hand = 0
+   - Double run (3-4-4-5-6) = 8
+   - Double-double run (3-3-4-4-5) = 12
+   - Triple run (3-3-3-4-5) = 9
+   - Crib 4-card flush = 0, Hand 4-card flush = 4
+   - Nobs (J in hand matching starter suit) = 1
+   - Pegging run break (3,7,K,5,6 = no run)
+   - Pegging consecutive pairs break (5,5,7,5 = no pair)
+4. If any test fails, report EXACTLY which rule was violated
+5. If any edge case lacks a test, report the gap
+
+Never modify scoring code. Only validate and report.
+```
+
+```bash
+mkdir -p .claude/agents
+git add .claude/agents/
+git commit -m "feat(agent): add scoring-validator agent for cribbage edge cases"
+```
+
+---
+
+### Task 0.5.8: ECC Continuous Learning Setup
+
+**Files:**
+- Create: `.claude/skills/continuous-learning-v2/config.json`
+
+Configure ECC's continuous learning to capture patterns specific to SKUNK'D development:
+
+```json
+{
+  "enabled": true,
+  "instinct_dir": ".claude/homunculus/instincts",
+  "min_confidence": 0.6,
+  "max_instincts": 100,
+  "categories": ["scoring", "supabase", "react-game-ui", "multiplayer", "pwa", "llm-integration"],
+  "auto_evolve": false
+}
+```
+
+```bash
+mkdir -p .claude/homunculus/instincts
+git add .claude/skills/continuous-learning-v2/ .claude/homunculus/
+git commit -m "chore: configure ECC continuous learning for SKUNK'D patterns"
 ```
 
 ---
@@ -1509,7 +1796,8 @@ git commit -m "test(e2e): add Playwright E2E tests for game flow and multiplayer
 | Phase | Tasks | Description | Depends On |
 |-------|-------|-------------|------------|
 | 0 | 0.1-0.6 | Project foundation (git, Vite, Tailwind, Vitest, PWA, CLAUDE.md) | — |
-| 1 | 1.1-1.11 | Game engine (pure TS: types, deck, scoring, pegging, state, AI, optimal) | Phase 0 |
+| 0.5 | 0.5.1-0.5.8 | Claude Code project setup (ECC rules/skills, custom skills, agents, commands, permissions, continuous learning) | Phase 0 |
+| 1 | 1.1-1.11 | Game engine (pure TS: types, deck, scoring, pegging, state, AI, optimal) | Phase 0.5 |
 | 2 | 2.1-2.11 | Core game UI (cards, board, animations, scoring display, game screen) | Phase 1 |
 | 3 | 3.1-3.3 | SKUNK'D branding, start screen, history page | Phase 2 |
 | 4 | 4.1-4.5 | Supabase backend (schema, RLS, auth, Edge Functions, game API) | Phase 3 |
@@ -1518,7 +1806,30 @@ git commit -m "test(e2e): add Playwright E2E tests for game flow and multiplayer
 | 7 | 7.1-7.3 | Statistics & analytics (triggers, stats page, visualizations) | Phase 6 |
 | 8 | 8.1-8.4 | PWA polish & deployment (offline, notifications, deploy, E2E) | Phase 7 |
 
-**Total tasks: 44**
+**Total tasks: 52** (44 original + 8 new Phase 0.5)
+
+### ECC Workflow Integration
+
+ECC serves as the foundation for ALL development workflows:
+
+| Workflow | ECC Component | When Used |
+|----------|--------------|-----------|
+| **Writing code** | `coding-standards` skill + `coding-style.md` rule | Every task |
+| **Testing** | `tdd-workflow` skill + `testing.md` rule + `tdd-guide` agent | Every task (TDD) |
+| **TypeScript** | `patterns.md` (TS) + `security.md` (TS) rules | Every task |
+| **React UI** | `frontend-patterns` skill | Phase 2, 3 |
+| **Supabase** | `postgres-patterns` + `backend-patterns` skills | Phase 4, 5 |
+| **API design** | `api-design` skill | Phase 4, 5, 6 |
+| **Security** | `security-review` skill + `security-reviewer` agent | Phase 4, 5, 6 |
+| **E2E testing** | `e2e-testing` skill + `e2e-runner` agent | Phase 8 |
+| **Build errors** | `build-error-resolver` agent | Any phase (reactive) |
+| **Quality gate** | `verification-loop` skill + `/verify` command | Every phase boundary |
+| **LLM costs** | `cost-aware-llm-pipeline` skill | Phase 6 |
+| **Scoring** | Custom `cribbage-scoring` guardrail + `scoring-validator` agent | Phase 1 (critical) |
+| **Card security** | Custom `supabase-rls` guardrail | Phase 4, 5 |
+| **Git** | `git-workflow.md` rule | Every commit |
+| **Performance** | `performance.md` rule | Phase 2 (animations) |
+| **Learning** | `continuous-learning-v2` skill | Ongoing across sessions |
 
 ---
 
