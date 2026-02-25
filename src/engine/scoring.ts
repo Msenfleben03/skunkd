@@ -90,3 +90,35 @@ export function scoreRuns(cards: readonly Card[]): number {
 
   return totalScore;
 }
+
+/**
+ * Score flush.
+ * Hand: 4 cards same suit = 4pts; all 5 same suit = 5pts.
+ * Crib: MUST be all 5 same suit or 0pts (4-card crib flush = 0).
+ */
+export function scoreFlush(
+  hand: readonly Card[],
+  starter: Card,
+  isCrib: boolean,
+): number {
+  const handSuit = hand[0].suit;
+  const allHandMatch = hand.every(c => c.suit === handSuit);
+
+  if (!allHandMatch) return 0;
+
+  const starterMatches = starter.suit === handSuit;
+
+  if (isCrib) {
+    return starterMatches ? 5 : 0;
+  }
+
+  return starterMatches ? 5 : 4;
+}
+
+/**
+ * Score nobs: Jack in HAND matching STARTER suit = 1 point.
+ * Note: Jack AS the starter is "His Heels" (handled in game state, not here).
+ */
+export function scoreNobs(hand: readonly Card[], starter: Card): number {
+  return hand.some(c => c.rank === 'J' && c.suit === starter.suit) ? 1 : 0;
+}

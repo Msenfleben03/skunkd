@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Card } from '../types';
 import { createCard } from '../types';
-import { scoreFifteens, scorePairs, scoreRuns } from '../scoring';
+import { scoreFifteens, scorePairs, scoreRuns, scoreFlush, scoreNobs } from '../scoring';
 
 /** Helper to create cards concisely */
 function card(rank: Card['rank'], suit: Card['suit']): Card {
@@ -160,5 +160,75 @@ describe('scoreRuns', () => {
   it('scores run with A-2-3 (A is low)', () => {
     const cards = [card('A', 'H'), card('2', 'S'), card('3', 'D'), card('8', 'C'), card('K', 'H')];
     expect(scoreRuns(cards)).toBe(3);
+  });
+});
+
+describe('scoreFlush', () => {
+  it('scores 4-card hand flush = 4 points', () => {
+    const hand = [card('2', 'H'), card('5', 'H'), card('8', 'H'), card('J', 'H')];
+    const starter = card('K', 'S'); // different suit
+    expect(scoreFlush(hand, starter, false)).toBe(4);
+  });
+
+  it('scores 5-card flush (hand + starter) = 5 points', () => {
+    const hand = [card('2', 'H'), card('5', 'H'), card('8', 'H'), card('J', 'H')];
+    const starter = card('K', 'H'); // same suit
+    expect(scoreFlush(hand, starter, false)).toBe(5);
+  });
+
+  it('scores 0 for no flush', () => {
+    const hand = [card('2', 'H'), card('5', 'S'), card('8', 'H'), card('J', 'H')];
+    const starter = card('K', 'H');
+    expect(scoreFlush(hand, starter, false)).toBe(0);
+  });
+
+  it('crib: 4-card flush = 0 points (must be 5-card)', () => {
+    const hand = [card('2', 'H'), card('5', 'H'), card('8', 'H'), card('J', 'H')];
+    const starter = card('K', 'S'); // different suit
+    expect(scoreFlush(hand, starter, true)).toBe(0);
+  });
+
+  it('crib: 5-card flush = 5 points', () => {
+    const hand = [card('2', 'H'), card('5', 'H'), card('8', 'H'), card('J', 'H')];
+    const starter = card('K', 'H'); // same suit
+    expect(scoreFlush(hand, starter, true)).toBe(5);
+  });
+
+  it('starter matching 3-of-4 hand suit does not make flush', () => {
+    const hand = [card('2', 'H'), card('5', 'H'), card('8', 'H'), card('J', 'S')];
+    const starter = card('K', 'H');
+    expect(scoreFlush(hand, starter, false)).toBe(0);
+  });
+});
+
+describe('scoreNobs', () => {
+  it('scores 1 point for Jack in hand matching starter suit', () => {
+    const hand = [card('3', 'H'), card('J', 'S'), card('7', 'D'), card('9', 'C')];
+    const starter = card('K', 'S'); // J of Spades matches starter Spades
+    expect(scoreNobs(hand, starter)).toBe(1);
+  });
+
+  it('scores 0 when no Jack in hand', () => {
+    const hand = [card('3', 'H'), card('5', 'S'), card('7', 'D'), card('9', 'C')];
+    const starter = card('K', 'S');
+    expect(scoreNobs(hand, starter)).toBe(0);
+  });
+
+  it('scores 0 when Jack suit does not match starter', () => {
+    const hand = [card('3', 'H'), card('J', 'H'), card('7', 'D'), card('9', 'C')];
+    const starter = card('K', 'S'); // J of Hearts != starter Spades
+    expect(scoreNobs(hand, starter)).toBe(0);
+  });
+
+  it('scores 0 when Jack IS the starter (His Heels, not Nobs)', () => {
+    const hand = [card('3', 'H'), card('5', 'S'), card('7', 'D'), card('9', 'C')];
+    const starter = card('J', 'S'); // Jack as starter = His Heels, not Nobs
+    expect(scoreNobs(hand, starter)).toBe(0);
+  });
+
+  it('scores 1 when one of multiple Jacks matches', () => {
+    const hand = [card('J', 'H'), card('J', 'S'), card('7', 'D'), card('9', 'C')];
+    const starter = card('K', 'S'); // J of Spades matches
+    expect(scoreNobs(hand, starter)).toBe(1);
   });
 });
