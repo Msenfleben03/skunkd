@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import type { Card, Rank, Suit } from '../types';
 import { createCard, cardValue } from '../types';
 import { aiSelectDiscard, aiSelectPlay, getPositionMode } from '../ai';
+import type { AIDifficulty } from '../ai';
 import { lookupCribEV } from '../crib-ev';
 
 /** Shorthand card factory */
@@ -422,6 +423,81 @@ describe('AI Decision Logic', () => {
       const result = aiSelectPlay(hand, [], 21, 65, 0, true);
       expect(result).not.toBeNull();
       expect(cardValue(result!.rank)).toBe(10); // Makes 31
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // AIDifficulty — hard/expert AI with Expectimax look-ahead
+  // ═══════════════════════════════════════════════════════════════════════
+  describe('AIDifficulty — hard/expert AI', () => {
+    it('AIDifficulty type is exported and well-formed', () => {
+      const difficulties: AIDifficulty[] = ['easy', 'medium', 'hard', 'expert'];
+      expect(difficulties).toHaveLength(4);
+    });
+
+    it('hard AI returns a card for a normal hand', () => {
+      const hand = [c('5', 'H'), c('10', 'S'), c('A', 'D')];
+      const result = aiSelectPlay(hand, [c('K', 'H')], 10, undefined, undefined, undefined, 'hard');
+      expect(result).not.toBeNull();
+    });
+
+    it('hard AI returns null when no play is possible', () => {
+      const hand = [c('10', 'H'), c('J', 'S'), c('Q', 'D')];
+      const result = aiSelectPlay(hand, [], 25, undefined, undefined, undefined, 'hard');
+      expect(result).toBeNull();
+    });
+
+    it('hard AI prefers making 31', () => {
+      const hand = [c('10', 'H'), c('5', 'S'), c('A', 'D')];
+      const result = aiSelectPlay(hand, [], 21, undefined, undefined, undefined, 'hard');
+      expect(result).not.toBeNull();
+      expect(cardValue(result!.rank)).toBe(10);
+    });
+
+    it('hard AI prefers making 15', () => {
+      const hand = [c('5', 'H'), c('2', 'S'), c('A', 'D')];
+      const result = aiSelectPlay(hand, [c('K', 'H')], 10, undefined, undefined, undefined, 'hard');
+      expect(result).not.toBeNull();
+      expect(result!.rank).toBe('5');
+    });
+
+    it('hard AI avoids dangerous count 5', () => {
+      // count=0: 5H → count 5 (dangerous), 3S → count 3 (safe)
+      const result = aiSelectPlay([c('5', 'H'), c('3', 'S')], [], 0, undefined, undefined, undefined, 'hard');
+      expect(result).not.toBeNull();
+      expect(result!.rank).toBe('3');
+    });
+
+    it('hard AI extends a run when no 31/15 available', () => {
+      // pile=[7,8], count=15 — 6 extends to run of 3 (3pts)
+      const pile = [c('7', 'H'), c('8', 'S')];
+      const hand = [c('6', 'D'), c('2', 'C'), c('A', 'H')];
+      const result = aiSelectPlay(hand, pile, 15, undefined, undefined, undefined, 'hard');
+      expect(result).not.toBeNull();
+      expect(result!.rank).toBe('6');
+    });
+
+    it('hard AI completes within 3000ms for a typical 4-card hand', () => {
+      const pile = [c('7', 'H'), c('8', 'S')];
+      const hand = [c('6', 'D'), c('2', 'C'), c('A', 'H'), c('K', 'C')];
+      const start = performance.now();
+      aiSelectPlay(hand, pile, 15, undefined, undefined, undefined, 'hard');
+      const elapsed = performance.now() - start;
+      expect(elapsed).toBeLessThan(3000);
+    });
+
+    it('easy AI still grabs 31 when available', () => {
+      const hand = [c('10', 'H'), c('5', 'S'), c('A', 'D')];
+      const result = aiSelectPlay(hand, [], 21, undefined, undefined, undefined, 'easy');
+      expect(result).not.toBeNull();
+      expect(cardValue(result!.rank)).toBe(10);
+    });
+
+    it('medium difficulty (no param) is same as default behaviour', () => {
+      const hand = [c('4', 'H'), c('7', 'S'), c('J', 'D')];
+      const withMedium = aiSelectPlay(hand, [], 0, undefined, undefined, undefined, 'medium');
+      const withDefault = aiSelectPlay(hand, [], 0);
+      expect(withMedium).toEqual(withDefault);
     });
   });
 });

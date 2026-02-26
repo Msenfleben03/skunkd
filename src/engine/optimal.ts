@@ -1,8 +1,10 @@
-import type { Card } from './types';
-import { cardValue, RANKS, SUITS } from './types';
+import type { Card, GameState, PeggingState, PlayerState } from './types';
+import { cardValue, RANKS, SUITS, createCard } from './types';
+import type { Rank, Suit } from './types';
 import { scoreHand } from './scoring';
 import { scorePeggingPlay } from './pegging';
 import { monteCartoCribEV } from './crib-ev';
+import { expectimaxPeggingPlay } from './expectimax';
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -122,16 +124,127 @@ export function optimalDiscard(
 
 // ─── Optimal Pegging Play ───────────────────────────────────────────────
 
+// ── Synthetic GameState builder for Expectimax evaluation ──────────────
+
+/**
+ * Build a full 52-card deck (for placeholder opponent hand generation).
+ */
+function buildPlaceholderDeck(): Card[] {
+  const deck: Card[] = [];
+  for (const rank of RANKS) {
+    for (const suit of SUITS) {
+      deck.push(createCard(rank as Rank, suit as Suit));
+    }
+  }
+  return deck;
+}
+
+/**
+ * Build a minimal synthetic GameState for evaluating a single candidate card
+ * during pegging, suitable for passing to expectimaxPeggingPlay.
+ *
+ * The candidate card is placed as the sole card in the current player's hand,
+ * forcing Expectimax to evaluate it first. The opponent's hand is given a
+ * realistic placeholder size that randomizeOpponentHand will replace with
+ * random draws from the available pool.
+ *
+ * @param hand      - Full hand at decision time (all remaining cards)
+ * @param pile      - Current pegging pile (sequence of played cards)
+ * @param count     - Current pegging count
+ * @param candidate - The single card being evaluated
+ */
+function buildSynthStateForPlay(
+  hand: readonly Card[],
+  pile: readonly Card[],
+  count: number,
+  candidate: Card,
+): GameState {
+  // Opponent hand size: mirror remaining cards minus the one we're about to play
+  // Clamp to [0, 4] — max pegging hand after discard is 4 cards
+  const opponentHandSize = Math.max(0, Math.min(4, hand.length - 1));
+
+  // Build placeholder opponent cards from cards not in the pile or our hand
+  const knownIds = new Set<string>([
+    ...pile.map(c => c.id),
+    ...hand.map(c => c.id),
+  ]);
+  const opponentPlaceholders = buildPlaceholderDeck()
+    .filter(c => !knownIds.has(c.id))
+    .slice(0, opponentHandSize);
+
+  const currentPlayerIndex = 0;
+
+  const currentPlayer: PlayerState = {
+    hand: [candidate],
+    score: 0,
+    pegFront: 0,
+    pegBack: 0,
+  };
+
+  const opponentPlayer: PlayerState = {
+    hand: opponentPlaceholders,
+    score: 0,
+    pegFront: 0,
+    pegBack: 0,
+  };
+
+  const pegging: PeggingState = {
+    count,
+    pile,
+    sequence: pile,
+    currentPlayerIndex,
+    goState: [false, false],
+    playerCards: [[candidate], opponentPlaceholders],
+    lastCardPlayerIndex: null,
+  };
+
+  return {
+    phase: 'PEGGING',
+    deck: [],
+    players: [currentPlayer, opponentPlayer],
+    crib: [],
+    starter: null,
+    dealerIndex: 1,
+    handNumber: 1,
+    pegging,
+    handStats: [
+      { pegging: 0, hand: 0, crib: 0 },
+      { pegging: 0, hand: 0, crib: 0 },
+    ],
+    winner: null,
+    decisionLog: [],
+  };
+}
+
+/** Counts that hand control to opponent — leaving these is penalised. */
+const DANGEROUS_PEG_COUNTS = new Set([5, 11, 21]);
+
+/**
+ * Evaluate a single candidate card's Expectimax EV.
+ * Returns 0 if the card is not playable at the current count.
+ * Applies a -1.5 penalty when the resulting count is a known dangerous count
+ * ({5, 11, 21}) that lets the opponent score immediately.
+ */
+function evalCandidateEV(
+  hand: readonly Card[],
+  pile: readonly Card[],
+  count: number,
+  candidate: Card,
+): number {
+  const newCount = count + cardValue(candidate.rank);
+  if (newCount > 31) return 0;
+  const dangerPenalty = DANGEROUS_PEG_COUNTS.has(newCount) ? -1.5 : 0;
+  const synthState = buildSynthStateForPlay(hand, pile, count, candidate);
+  return expectimaxPeggingPlay(synthState, 0, 0, 20, 3) + dangerPenalty;
+}
+
 /**
  * Calculate the optimal card to play during pegging for coaching.
  *
- * Priority system:
- * 1. Make 31 (2 points)
- * 2. Make 15 (2 points)
- * 3. Make a pair with last card in pile (2 points)
- * 4. Extend a run in the pile (3+ points)
- * 5. Avoid leaving count at 5, 11, or 21 (easy opponent scoring)
- * 6. Play lowest value card
+ * Uses Expectimax EV (20 determinizations, depth 3) to rank each playable
+ * card, selecting the one with highest expected cumulative value. Falls back
+ * to greedy immediate scoring to generate human-readable reasoning strings
+ * (31, 15, pair, run, safe-play).
  *
  * Returns null card with Go reasoning when no play is possible.
  */
@@ -150,93 +263,57 @@ export function optimalPeggingPlay(
     };
   }
 
-  // Priority 1: Make 31
-  const makes31 = playable.find(card => cardValue(card.rank) + count === 31);
-  if (makes31) {
-    return {
-      card: makes31,
-      reasoning: `Play ${makes31.rank}${makes31.suit} to make 31 for 2 points.`,
-      points: 2,
-    };
-  }
-
-  // Priority 2: Make 15
-  const makes15 = playable.find(card => cardValue(card.rank) + count === 15);
-  if (makes15) {
-    return {
-      card: makes15,
-      reasoning: `Play ${makes15.rank}${makes15.suit} to make 15 for 2 points.`,
-      points: 2,
-    };
-  }
-
-  // Priority 3: Make a pair with last card in pile
-  if (pile.length > 0) {
-    const lastRank = pile[pile.length - 1].rank;
-    const makesPair = playable.find(card => card.rank === lastRank);
-    if (makesPair) {
-      const newPile = [...pile, makesPair];
-      const peggingScore = scorePeggingPlay(newPile);
-      return {
-        card: makesPair,
-        reasoning: `Play ${makesPair.rank}${makesPair.suit} to make a pair for ${peggingScore.total} points.`,
-        points: peggingScore.total,
-      };
+  // ── Expectimax EV ranking ──────────────────────────────────────────────
+  // Score every playable card with Expectimax (immediate + look-ahead EV)
+  let bestCard: Card = playable[0]!;
+  let bestEV = -Infinity;
+  for (const card of playable) {
+    const ev = evalCandidateEV(hand, pile, count, card);
+    if (ev > bestEV) {
+      bestEV = ev;
+      bestCard = card;
     }
   }
 
-  // Priority 4: Extend a run in the pile
-  if (pile.length >= 2) {
-    let bestRunCard: Card | null = null;
-    let bestRunScore = 0;
-    for (const card of playable) {
-      const newPile = [...pile, card];
-      const score = scorePeggingPlay(newPile);
-      if (score.runs > bestRunScore) {
-        bestRunScore = score.runs;
-        bestRunCard = card;
-      }
-    }
-    if (bestRunCard) {
-      const newPile = [...pile, bestRunCard];
-      const peggingScore = scorePeggingPlay(newPile);
-      return {
-        card: bestRunCard,
-        reasoning: `Play ${bestRunCard.rank}${bestRunCard.suit} to extend the run for ${peggingScore.total} points.`,
-        points: peggingScore.total,
-      };
-    }
-  }
-
-  // Priority 5: Avoid dangerous counts (5, 11, 21)
-  const DANGEROUS_COUNTS = new Set([5, 11, 21]);
-  const safe = playable.filter(card => {
-    const newCount = cardValue(card.rank) + count;
-    return !DANGEROUS_COUNTS.has(newCount);
-  });
-
-  const candidates = safe.length > 0 ? safe : playable;
-
-  // Play lowest value card
-  const best = candidates.reduce((b, card) =>
-    cardValue(card.rank) < cardValue(b.rank) ? card : b,
-  );
-
-  // Check if this play scores anything via pegging
-  const newPile = [...pile, best];
+  // ── Immediate pegging score for the selected card ──────────────────────
+  const newPile = [...pile, bestCard];
   const peggingScore = scorePeggingPlay(newPile);
-  const points = peggingScore.total;
+  const newCount = count + cardValue(bestCard.rank);
 
+  // ── Generate reasoning based on what the play achieves ────────────────
   let reasoning: string;
-  if (safe.length > 0 && safe.length < playable.length) {
-    const avoided = playable
-      .filter(c => !safe.includes(c))
-      .map(c => `${c.rank}${c.suit} (would leave ${cardValue(c.rank) + count})`)
-      .join(', ');
-    reasoning = `Play ${best.rank}${best.suit} (lowest safe card). Avoided: ${avoided}.`;
+
+  if (newCount === 31) {
+    reasoning = `Play ${bestCard.rank}${bestCard.suit} to make 31 for 2 points.`;
+  } else if (newCount === 15) {
+    reasoning = `Play ${bestCard.rank}${bestCard.suit} to make 15 for 2 points.`;
+  } else if (pile.length > 0 && bestCard.rank === pile[pile.length - 1]!.rank) {
+    reasoning = `Play ${bestCard.rank}${bestCard.suit} to make a pair for ${peggingScore.total} points.`;
+  } else if (peggingScore.runs > 0) {
+    reasoning = `Play ${bestCard.rank}${bestCard.suit} to extend the run for ${peggingScore.total} points.`;
   } else {
-    reasoning = `Play ${best.rank}${best.suit} — lowest value card${points > 0 ? ` for ${points} points` : ''}.`;
+    // Describe safe-play or neutral reasoning
+    const DANGEROUS_COUNTS = new Set([5, 11, 21]);
+    const avoidsOnlyDangerous = playable.every(c => {
+      const nc = count + cardValue(c.rank);
+      return nc === newCount || DANGEROUS_COUNTS.has(nc);
+    });
+
+    if (avoidsOnlyDangerous && playable.length > 1) {
+      const avoided = playable
+        .filter(c => c !== bestCard)
+        .map(c => `${c.rank}${c.suit} (would leave ${cardValue(c.rank) + count})`)
+        .join(', ');
+      reasoning = `Play ${bestCard.rank}${bestCard.suit} (lowest safe card). Avoided: ${avoided}.`;
+    } else {
+      reasoning = `Play ${bestCard.rank}${bestCard.suit} — highest Expectimax EV (${bestEV.toFixed(2)} pts)${peggingScore.total > 0 ? ` for ${peggingScore.total} points` : ''}.`;
+    }
   }
 
-  return { card: best, reasoning, points };
+  // scorePeggingPlay sums the pile directly, so 15/31 must use newCount instead.
+  const fifteen = newCount === 15 ? 2 : 0;
+  const thirtyone = newCount === 31 ? 2 : 0;
+  const points = peggingScore.pairs + peggingScore.runs + fifteen + thirtyone;
+
+  return { card: bestCard, reasoning, points };
 }

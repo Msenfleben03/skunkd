@@ -3,6 +3,18 @@ import { cardValue, RANKS, SUITS } from './types';
 import { scoreHand } from './scoring';
 import { scorePeggingPlay } from './pegging';
 import { lookupCribEV } from './crib-ev';
+import { optimalPeggingPlay } from './optimal';
+
+// ─── AI Difficulty ────────────────────────────────────────────────────────
+
+/**
+ * AI difficulty levels.
+ * - easy:   grabs free 31/15, otherwise plays lowest card
+ * - medium: full greedy heuristic (31 > 15 > pair > run > avoid {5,11,21} > lowest)
+ * - hard:   Expectimax look-ahead via optimalPeggingPlay (20 det, depth 3)
+ * - expert: same as hard (future: increase determinizations/depth)
+ */
+export type AIDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
 
 /**
  * Result of AI discard evaluation.
@@ -111,7 +123,7 @@ export function aiSelectDiscard(
 /**
  * Select the best card to play during pegging.
  *
- * Priority system:
+ * Priority system (medium difficulty):
  * 1. Make 31 (2 points)
  * 2. Make 15 (2 points)
  * 3. Make a pair with last card in pile (2 points) — skipped in defense mode
@@ -120,6 +132,7 @@ export function aiSelectDiscard(
  * 6. Play lowest value card
  *
  * Optionally accepts scores for board-position-aware play (Theory of 26).
+ * For hard/expert difficulty, uses Expectimax look-ahead via optimalPeggingPlay.
  * Returns null if no card is playable (must declare Go).
  */
 export function aiSelectPlay(
@@ -129,12 +142,32 @@ export function aiSelectPlay(
   myScore?: number,
   opponentScore?: number,
   isDealer?: boolean,
+  difficulty?: AIDifficulty,
 ): Card | null {
   const playable = hand.filter(card => cardValue(card.rank) + count <= 31);
 
   if (playable.length === 0) return null;
-  if (playable.length === 1) return playable[0];
+  if (playable.length === 1) return playable[0]!;
 
+  // ── Hard / Expert: Expectimax look-ahead ──────────────────────────────
+  if (difficulty === 'hard' || difficulty === 'expert') {
+    const result = optimalPeggingPlay(hand, pile, count);
+    // optimalPeggingPlay returns null card only when no playable — already handled above
+    return result.card;
+  }
+
+  // ── Easy: grab free 31/15, otherwise play lowest card ─────────────────
+  if (difficulty === 'easy') {
+    const makes31 = playable.find(card => cardValue(card.rank) + count === 31);
+    if (makes31) return makes31;
+    const makes15 = playable.find(card => cardValue(card.rank) + count === 15);
+    if (makes15) return makes15;
+    return playable.reduce((best, card) =>
+      cardValue(card.rank) < cardValue(best.rank) ? card : best,
+    );
+  }
+
+  // ── Medium (default): full greedy heuristic ───────────────────────────
   const mode = (myScore !== undefined && opponentScore !== undefined && isDealer !== undefined)
     ? getPositionMode(myScore, opponentScore, isDealer)
     : 'neutral';

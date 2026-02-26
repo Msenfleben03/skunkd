@@ -187,10 +187,15 @@ function selectBestPeggingCard(playable: Card[], pile: readonly Card[]): Card {
  * Simulate D plays ahead greedily, alternating between current player and
  * opponent. Returns cumulative score from the perspective of the current player.
  *
- * @param pile       - Current pegging sequence (for scoring context)
+ * @param pile        - Current pegging sequence (cards played this round, for
+ *                      run/pair scoring context).
  * @param currentHand - Cards remaining in current player's hand
  * @param opponentHand - Cards remaining in opponent's hand (determinized)
- * @param depth      - Number of plays to look ahead
+ * @param depth       - Number of plays to look ahead
+ * @param count       - Running pegging count. Must be passed explicitly; it may
+ *                      differ from pile.reduce(sum) when the initial state is a
+ *                      synthetic state where pile does not reflect all prior plays
+ *                      (e.g. when evaluating a single candidate card from mid-peg).
  * @returns Expected score for current player from this position
  */
 function greedyRollout(
@@ -198,10 +203,9 @@ function greedyRollout(
   currentHand: Card[],
   opponentHand: Card[],
   depth: number,
+  count: number,
 ): number {
   if (depth === 0) return 0;
-
-  const count = pile.reduce((sum, c) => sum + cardValue(c.rank), 0);
 
   // Find current player's playable cards
   const playable = currentHand.filter(c => count + cardValue(c.rank) <= 31);
@@ -220,27 +224,40 @@ function greedyRollout(
     const opponentCount = count + cardValue(bestOpponentCard.rank);
     // Reset pile to [] if opponent scores exactly 31; play continues with fresh count
     const newPile = opponentCount === 31 ? [] : tentativeOpponentPile;
+    const newCount = opponentCount === 31 ? 0 : opponentCount;
     // Opponent scoring does NOT contribute to our EV (it's their gain, our loss)
     const newOpponentHand = opponentHand.filter(
       c => !(c.rank === bestOpponentCard.rank && c.suit === bestOpponentCard.suit),
     );
 
     // After opponent plays, it's our turn again
-    return greedyRollout(newPile, currentHand, newOpponentHand, depth - 1);
+    return greedyRollout(newPile, currentHand, newOpponentHand, depth - 1, newCount);
   }
 
   // Current player plays best card (greedy)
   const bestCard = selectBestPeggingCard(playable, pile);
   const tentativePile = [...pile, bestCard];
-  const score = scorePeggingPlay(tentativePile);
+  const newCount = count + cardValue(bestCard.rank);
+  // Score the play using the tentative pile for run/pair context, but override
+  // the pile-sum-based count detection with the actual running count.
+  // scorePeggingPlay computes count internally from pile.reduce(), so we need
+  // to build a pile whose sum equals newCount for correct 15/31 detection.
+  // Since tentativePile may start from a synthetic empty pile (count mismatch),
+  // we score pairs/runs from tentativePile and detect 15/31 from newCount directly.
+  const pairsAndRuns = scorePeggingPlay(tentativePile);
+  const fifteen = newCount === 15 ? 2 : 0;
+  const thirtyone = newCount === 31 ? 2 : 0;
+  const immediateScore = pairsAndRuns.pairs + pairsAndRuns.runs + fifteen + thirtyone;
+
   const newCurrentHand = currentHand.filter(
     c => !(c.rank === bestCard.rank && c.suit === bestCard.suit),
   );
   // Reset pile to [] if current player scores exactly 31; play continues with fresh count
-  const newPile = count + cardValue(bestCard.rank) === 31 ? [] : tentativePile;
+  const newPile = newCount === 31 ? [] : tentativePile;
+  const nextCount = newCount === 31 ? 0 : newCount;
 
   // After current player plays, it's opponent's turn
-  return score.total + greedyRollout(newPile, opponentHand, newCurrentHand, depth - 1);
+  return immediateScore + greedyRollout(newPile, opponentHand, newCurrentHand, depth - 1, nextCount);
 }
 
 // ---------------------------------------------------------------------------
@@ -289,7 +306,7 @@ export function expectimaxPeggingPlay(
     const opponentIndex = (currentPlayerIndex + 1) % 2;
     const opponentHand = [...detState.players[opponentIndex]!.hand];
 
-    const ev = greedyRollout(gameState.pegging.sequence, myHand, opponentHand, depth);
+    const ev = greedyRollout(gameState.pegging.sequence, myHand, opponentHand, depth, gameState.pegging.count);
     totalEv += ev;
   }
 

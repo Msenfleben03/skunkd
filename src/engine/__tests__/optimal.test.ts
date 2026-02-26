@@ -185,5 +185,34 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       expect(result.card!.rank).toBe('5');
       expect(result.points).toBeGreaterThanOrEqual(3);
     });
+
+    // ─── Expectimax EV ranking ────────────────────────────────────────
+    it('uses Expectimax EV to select card — prefers 31 over lower-scoring options', () => {
+      // count=21, hand has 10 (makes 31=2pts) and A (scores 0)
+      // Expectimax should still prefer the 10 for 31 (highest EV path)
+      const hand = [c('10', 'H'), c('A', 'S')];
+      const result = optimalPeggingPlay(hand, [], 21);
+      expect(result.card).not.toBeNull();
+      expect(cardValue(result.card!.rank)).toBe(10);
+      expect(result.reasoning.toLowerCase()).toContain('31');
+    });
+
+    it('returns null when no cards are playable (count near 31)', () => {
+      // count=30 — only a 1-value card could fit, but hand has only 10-value cards
+      const hand = [c('10', 'H'), c('J', 'S'), c('Q', 'D'), c('K', 'C')];
+      const result = optimalPeggingPlay(hand, [], 30);
+      expect(result.card).toBeNull();
+      expect(result.reasoning).toContain('Go');
+    });
+
+    it('Expectimax EV-based selection completes within 3000ms for typical hand', () => {
+      // Expectimax with 20 determinizations and depth 3 — should be fast enough
+      const pile = [c('7', 'H'), c('8', 'S')];
+      const hand = [c('6', 'D'), c('2', 'C'), c('A', 'H'), c('K', 'C')];
+      const start = performance.now();
+      optimalPeggingPlay(hand, pile, 15);
+      const elapsed = performance.now() - start;
+      expect(elapsed).toBeLessThan(3000);
+    });
   });
 });
