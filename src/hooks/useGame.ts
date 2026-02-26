@@ -146,8 +146,6 @@ export function useGame(): UseGameReturn {
     // PEGGING → AI's turn
     if (phase === 'PEGGING' && pegging.currentPlayerIndex === AI_PLAYER && !winner) {
       const aiCards = pegging.playerCards[AI_PLAYER];
-      const aiScore = players[AI_PLAYER].score;
-      const playerScore = players[HUMAN_PLAYER].score;
       const delay = 800 + Math.random() * 700;
 
       timerRef.current = setTimeout(() => {
@@ -155,9 +153,6 @@ export function useGame(): UseGameReturn {
           aiCards,
           pegging.sequence,
           pegging.count,
-          aiScore,
-          playerScore,
-          dealerIndex === AI_PLAYER,
         );
         if (card) {
           dispatch({ type: 'PLAY_CARD', playerIndex: AI_PLAYER, cardId: card.id });
