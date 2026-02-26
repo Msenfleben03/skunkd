@@ -1000,7 +1000,7 @@ git commit -m "feat(engine): add game state machine with full phase flow"
 
 ---
 
-### Task 1.10: AI Decision Logic
+### Task 1.10: AI Decision Logic ✅ DONE
 
 **Files:**
 - Create: `src/engine/ai.ts`
@@ -1043,7 +1043,7 @@ git commit -m "feat(engine): add AI discard and play selection logic"
 
 ---
 
-### Task 1.11: Optimal Play Calculator (for Coaching)
+### Task 1.11: Optimal Play Calculator (for Coaching) ✅ DONE
 
 **Files:**
 - Create: `src/engine/optimal.ts`
