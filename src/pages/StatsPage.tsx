@@ -70,8 +70,11 @@ export function StatsPage() {
           <p className="text-cream/50 text-sm">Couldn&apos;t load stats. Try again.</p>
           <button
             onClick={() => {
+              if (!userId) return;
               setLoading(true);
-              fetchStats(user!.id).then(d => { setStats(d); setLoading(false); });
+              fetchStats(userId)
+                .then(d => { setStats(d); setLoading(false); })
+                .catch(() => { setStats(null); setLoading(false); });
             }}
             className="mt-3 text-gold/70 text-xs underline"
           >

@@ -8,11 +8,12 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+const { mockUseAuth } = vi.hoisted(() => ({
+  mockUseAuth: vi.fn(),
+}));
+
 vi.mock('@/context/AuthContext', () => ({
-  useAuthContext: () => ({
-    user: { id: 'user-123', displayName: 'TestPlayer', isGuest: false },
-    loading: false,
-  }),
+  useAuthContext: () => mockUseAuth(),
 }));
 
 const mockFetchStats = vi.fn();
@@ -47,7 +48,13 @@ function renderStats() {
 }
 
 describe('StatsPage', () => {
-  beforeEach(() => { vi.clearAllMocks(); });
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', displayName: 'TestPlayer', isGuest: false },
+      loading: false,
+    });
+  });
 
   it('shows loading state initially', () => {
     mockFetchStats.mockReturnValueOnce(new Promise(() => {}));
@@ -86,12 +93,22 @@ describe('StatsPage', () => {
     expect(screen.getByTestId('stats-error')).toBeInTheDocument();
   });
 
-  it('shows guest nudge when user is a guest', async () => {
+  it('hides guest nudge for authenticated user', async () => {
     mockFetchStats.mockResolvedValueOnce(mockStats);
     renderStats();
     await waitFor(() => expect(screen.queryByTestId('stats-loading')).toBeNull());
-    // Guest nudge is NOT shown for non-guest user (isGuest: false in mock)
     expect(screen.queryByTestId('stats-guest-nudge')).toBeNull();
+  });
+
+  it('shows guest nudge when user is a guest', async () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', displayName: 'GuestPlayer', isGuest: true },
+      loading: false,
+    });
+    mockFetchStats.mockResolvedValueOnce(mockStats);
+    renderStats();
+    await waitFor(() => expect(screen.queryByTestId('stats-loading')).toBeNull());
+    expect(screen.getByTestId('stats-guest-nudge')).toBeInTheDocument();
   });
 
   it('back button calls navigate("/")', async () => {
