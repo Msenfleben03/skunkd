@@ -90,6 +90,17 @@ export interface HandStats {
   readonly crib: number;
 }
 
+// Snapshot of a player decision for coaching analysis
+export interface DecisionSnapshot {
+  readonly type: 'discard' | 'pegging_play';
+  readonly hand: readonly Card[];         // hand at decision time (6 for discard, remaining pegging cards for play)
+  readonly playerChoice: readonly Card[]; // 2 cards for discard, 1 card for play
+  readonly isDealer: boolean;
+  readonly pile?: readonly Card[];        // pegging only: pile (sequence) before this play
+  readonly count?: number;               // pegging only: count before this play
+  readonly handIndex: number;            // 0-based hand number in this game
+}
+
 // Full game state — players array supports 2+ players
 export interface GameState {
   readonly phase: Phase;
@@ -102,6 +113,7 @@ export interface GameState {
   readonly pegging: PeggingState;
   readonly handStats: readonly HandStats[];
   readonly winner: number | null;
+  readonly decisionLog: readonly DecisionSnapshot[];
 }
 
 // Game actions

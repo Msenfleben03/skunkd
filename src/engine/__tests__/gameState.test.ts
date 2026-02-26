@@ -35,6 +35,7 @@ function makeState(overrides: Partial<GameState>): GameState {
       { pegging: 0, hand: 0, crib: 0 },
     ],
     winner: null,
+    decisionLog: [],
   };
   return { ...defaults, ...overrides };
 }
@@ -426,5 +427,17 @@ describe('gameReducer — NEXT_HAND', () => {
     // Scores preserved
     expect(next.players[0].score).toBe(30);
     expect(next.players[1].score).toBe(25);
+  });
+});
+
+describe('decisionLog initialization', () => {
+  it('starts with empty decisionLog', () => {
+    const game = createGame(2);
+    expect(game.decisionLog).toEqual([]);
+  });
+
+  it('decisionLog persists through DEAL', () => {
+    const game = gameReducer(createGame(2), { type: 'DEAL' });
+    expect(game.decisionLog).toEqual([]);
   });
 });

@@ -36,6 +36,7 @@ export function createGame(playerCount: number): GameState {
     pegging: emptyPegging(playerCount, 0),
     handStats,
     winner: null,
+    decisionLog: [],
   };
 }
 
