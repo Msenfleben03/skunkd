@@ -73,70 +73,108 @@ export function GameScreen({ className }: { className?: string }) {
           'relative overflow-hidden',
           className,
         )}
-        style={{ background: 'radial-gradient(ellipse at 50% 40%, #1a3d2b 0%, #0D0D1A 70%)' }}
+        style={{
+          background:
+            'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
+        }}
       >
         {/* Felt noise texture overlay */}
         <div
-          className="absolute inset-0 opacity-[0.03] pointer-events-none"
+          className="absolute inset-0 pointer-events-none"
           style={{
             backgroundImage:
-              'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 200 200\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'n\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/%3E%3C/svg%3E")',
+              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+            opacity: 0.045,
+            mixBlendMode: 'overlay',
+          }}
+        />
+        {/* Radial vignette */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(0,0,0,0.72) 100%)',
           }}
         />
 
-        <div className="relative z-10 text-center px-8 max-w-sm">
-          {/* Logo / mascot placeholder */}
-          <div
-            className="text-8xl mb-4 leading-none"
-            role="img"
-            aria-label="Skunk mascot"
-          >
-            🦨
+        <div className="relative z-10 text-center px-8 max-w-xs w-full">
+          {/* SKUNK'D logo with idle float animation */}
+          <div className="animate-float-in mb-3">
+            <img
+              src="/skunkd-logo.png"
+              alt="SKUNK'D — skunk holding playing cards"
+              className="skunk-idle w-56 h-56 object-contain mx-auto"
+            />
           </div>
 
-          {/* Title */}
-          <h1
-            className="text-6xl font-black text-gold mb-1 tracking-tight"
-            style={{ fontFamily: "'Playfair Display', serif" }}
-          >
-            SKUNK'D
-          </h1>
+          {/* Tagline */}
           <p
-            className="text-cream/50 italic text-base mb-1"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="animate-float-in text-cream/55 italic text-sm mb-1"
+            style={{ fontFamily: "'Playfair Display', serif", animationDelay: '0.1s' }}
           >
             The cribbage game that bites back.
           </p>
-          <p className="text-cream/30 text-xs mb-8 leading-relaxed">
-            Since 1630 — invented by a cheating poet,<br />
+          <p
+            className="animate-float-in text-cream/25 text-[10px] mb-7 leading-relaxed"
+            style={{ animationDelay: '0.18s' }}
+          >
+            Since 1630 — invented by a cheating poet,
+            <br />
             perfected on submarines.
           </p>
 
-          {/* VS badge */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <span className="text-2xl">🧑</span>
-            <div className="flex flex-col items-center">
-              <span className="text-gold/80 text-sm font-bold">VS</span>
-              <span className="text-cream/30 text-[10px]">First to 121</span>
-            </div>
-            <span className="text-2xl">🦨</span>
+          {/* Buttons */}
+          <div
+            className="animate-float-in flex flex-col gap-3"
+            style={{ animationDelay: '0.3s' }}
+          >
+            {/* Primary CTA */}
+            <button
+              className={cn(
+                'w-full rounded-xl py-4 px-8 font-black text-xl',
+                'bg-gold text-skunk-dark shadow-xl shadow-gold/30',
+                'hover:bg-gold-bright hover:shadow-gold/50 hover:scale-[1.02]',
+                'transition-all duration-150 active:scale-[0.97]',
+              )}
+              onClick={newGame}
+              data-testid="deal-me-in-btn"
+              style={{ fontFamily: "'Playfair Display', serif" }}
+            >
+              Deal Me In
+            </button>
+
+            {/* How to Play */}
+            <button
+              className={cn(
+                'w-full rounded-xl py-3 px-8 font-semibold text-sm',
+                'border border-white/10 text-cream/55',
+                'hover:border-white/20 hover:text-cream/80 transition-all duration-150',
+              )}
+              onClick={() => {
+                /* TODO: Phase 3.3 — how to play modal */
+              }}
+            >
+              How to Play
+            </button>
+
+            {/* Online — coming soon */}
+            <button
+              className={cn(
+                'w-full rounded-xl py-2.5 px-8 font-medium text-xs',
+                'border border-white/[0.06] text-cream/25',
+                'cursor-not-allowed select-none',
+              )}
+              disabled
+              aria-label="Online play — coming soon"
+            >
+              Play Online — Coming Soon
+            </button>
           </div>
 
-          {/* CTA */}
-          <button
-            className={cn(
-              'w-full rounded-xl py-4 px-8 font-black text-xl',
-              'bg-gold text-skunk-dark shadow-xl shadow-gold/30',
-              'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
-            )}
-            onClick={newGame}
-            data-testid="deal-me-in-btn"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+          <p
+            className="animate-float-in text-cream/15 text-[9px] mt-5"
+            style={{ animationDelay: '0.48s' }}
           >
-            Deal Me In
-          </button>
-
-          <p className="text-cream/20 text-[10px] mt-4">
             Get skunked below 91 and you'll never live it down.
           </p>
         </div>

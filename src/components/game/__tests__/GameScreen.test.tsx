@@ -9,7 +9,7 @@ describe('GameScreen', () => {
   it('renders the start screen initially', () => {
     render(<GameScreen />);
     expect(screen.getByTestId('deal-me-in-btn')).toBeInTheDocument();
-    expect(screen.getByText("SKUNK'D")).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /SKUNK'D/i })).toBeInTheDocument();
   });
 
   it('shows "Deal Me In" button on start screen', () => {
