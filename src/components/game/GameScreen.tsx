@@ -119,7 +119,6 @@ export function GameScreen({ className }: { className?: string }) {
     if (phase !== 'GAME_OVER' || winner === null || !auth.user || savedRef.current) return;
     savedRef.current = true;
     recordGameResult({
-      userId: auth.user.id,
       won: winner === HUMAN_PLAYER,
       playerScore: player.score,
       opponentScore: opponent.score,

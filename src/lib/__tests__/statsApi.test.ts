@@ -21,14 +21,12 @@ describe('recordGameResult', () => {
     mockRpc.mockResolvedValueOnce({ error: null });
 
     await recordGameResult({
-      userId: 'user-123',
       won: true,
       playerScore: 121,
       opponentScore: 75,
     });
 
     expect(mockRpc).toHaveBeenCalledWith('record_game_result', {
-      p_user_id: 'user-123',
       p_won: true,
       p_player_score: 121,
       p_opponent_score: 75,
@@ -39,14 +37,12 @@ describe('recordGameResult', () => {
     mockRpc.mockResolvedValueOnce({ error: null });
 
     await recordGameResult({
-      userId: 'user-456',
       won: false,
       playerScore: 80,
       opponentScore: 121,
     });
 
     expect(mockRpc).toHaveBeenCalledWith('record_game_result', expect.objectContaining({
-      p_user_id: 'user-456',
       p_won: false,
     }));
   });
@@ -55,7 +51,7 @@ describe('recordGameResult', () => {
     mockRpc.mockResolvedValueOnce({ error: { message: 'DB error' } });
 
     await expect(
-      recordGameResult({ userId: 'u', won: true, playerScore: 121, opponentScore: 90 })
+      recordGameResult({ won: true, playerScore: 121, opponentScore: 90 })
     ).rejects.toThrow('Failed to record game result: DB error');
   });
 });
