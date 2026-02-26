@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Card, GameState, PlayerState, PeggingState, DecisionSnapshot } from '../types';
+import type { Card, GameState, PlayerState, PeggingState } from '../types';
 import { createCard } from '../types';
 import { createGame, gameReducer } from '../gameState';
 

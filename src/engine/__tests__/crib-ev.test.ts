@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Card, Rank, Suit } from '../types';
 import { createCard } from '../types';
-import { lookupCribEV, monteCartoCribEV } from '../crib-ev';
+import { monteCartoCribEV } from '../crib-ev';
 
 function c(rank: Rank, suit: Suit): Card {
   return createCard(rank, suit);

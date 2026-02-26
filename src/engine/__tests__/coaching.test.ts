@@ -1,0 +1,274 @@
+import { describe, it, expect } from 'vitest';
+import type { Card, Rank, Suit, DecisionSnapshot } from '../types';
+import { createCard } from '../types';
+import { optimalDiscard } from '../optimal';
+import {
+  analyzeDecision,
+  analyzeHand,
+  analyzeGame,
+} from '../coaching';
+
+function c(rank: Rank, suit: Suit): Card {
+  return createCard(rank, suit);
+}
+
+describe('analyzeDecision — discard', () => {
+  it('returns excellent severity when player chose the optimal discard', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const opt = optimalDiscard(hand, true);
+    const snapshot: DecisionSnapshot = {
+      type: 'discard',
+      hand,
+      playerChoice: [...opt.discard],
+      isDealer: true,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    expect(annotation.evl).toBeLessThan(0.1);
+    expect(annotation.severity).toBe('excellent');
+    expect(annotation.decision).toBe('discard');
+    expect(annotation.evActual).toBeCloseTo(annotation.evOptimal, 1);
+  });
+
+  it('returns positive EVL when player chose the worst discard', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const opt = optimalDiscard(hand, true);
+    const worstOption = opt.allOptions[opt.allOptions.length - 1];
+    const snapshot: DecisionSnapshot = {
+      type: 'discard',
+      hand,
+      playerChoice: [...worstOption.discard],
+      isDealer: true,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    expect(annotation.evl).toBeGreaterThan(0);
+    expect(annotation.evOptimal).toBeGreaterThan(annotation.evActual);
+  });
+
+  it('EVL is never negative', () => {
+    const hand = [c('A','H'), c('4','S'), c('7','D'), c('10','C'), c('Q','H'), c('K','S')];
+    const opt = optimalDiscard(hand, false);
+    // Try all 15 options — none should produce negative EVL
+    for (const option of opt.allOptions) {
+      const snapshot: DecisionSnapshot = {
+        type: 'discard',
+        hand,
+        playerChoice: [...option.discard],
+        isDealer: false,
+        handIndex: 0,
+      };
+      const annotation = analyzeDecision(snapshot);
+      expect(annotation.evl).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it('identifies the optimal cards correctly', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const opt = optimalDiscard(hand, true);
+    const snapshot: DecisionSnapshot = {
+      type: 'discard',
+      hand,
+      playerChoice: [c('9','H'), c('K','S')],
+      isDealer: true,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    const optIds = new Set(opt.discard.map(card => card.id));
+    const annotOptIds = new Set(annotation.optimal.map(card => card.id));
+    expect([...optIds]).toEqual(expect.arrayContaining([...annotOptIds]));
+  });
+
+  it('includes reasoning string from optimalDiscard', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const snapshot: DecisionSnapshot = {
+      type: 'discard',
+      hand,
+      playerChoice: [c('9','H'), c('K','S')],
+      isDealer: true,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    expect(typeof annotation.reasoning).toBe('string');
+    expect(annotation.reasoning.length).toBeGreaterThan(0);
+  });
+});
+
+describe('analyzeDecision — pegging play', () => {
+  it('returns excellent severity when player made the optimal pegging play', () => {
+    // count=21 (K=10 + J=10 + A=1), playing 10 makes 31 — optimal and obvious
+    // pile cards must sum to count for scorePeggingPlay to correctly detect 31
+    const hand = [c('10','H'), c('5','S'), c('A','D')];
+    const pile = [c('K','H'), c('J','S'), c('A','C')]; // 10+10+1=21
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand,
+      playerChoice: [c('10','H')],
+      isDealer: false,
+      pile,
+      count: 21,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    expect(annotation.severity).toBe('excellent');
+    expect(annotation.evl).toBeLessThan(0.1);
+    expect(annotation.evOptimal).toBe(2); // 31 = 2 pts
+  });
+
+  it('returns positive EVL when player missed making 31', () => {
+    // count=21, optimal is to play 10 for 31, player played A instead
+    const hand = [c('10','H'), c('A','D')];
+    const pile: Card[] = [];
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand,
+      playerChoice: [c('A','D')],  // plays A instead of 10
+      isDealer: false,
+      pile,
+      count: 21,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    expect(annotation.evl).toBeGreaterThan(0);
+  });
+
+  it('handles no-play (all cards over 31) gracefully', () => {
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand: [c('10','H'), c('J','S')],
+      playerChoice: [],  // Go — no play
+      isDealer: false,
+      pile: [],
+      count: 25,
+      handIndex: 0,
+    };
+    // Should not throw — Go is correct when no card is playable
+    expect(() => analyzeDecision(snapshot)).not.toThrow();
+  });
+});
+
+describe('analyzeHand', () => {
+  function makeOptimalDiscardSnapshot(hand: Card[], isDealer: boolean, handIndex: number): DecisionSnapshot {
+    const opt = optimalDiscard(hand, isDealer);
+    return {
+      type: 'discard',
+      hand,
+      playerChoice: [...opt.discard],
+      isDealer,
+      handIndex,
+    };
+  }
+
+  it('returns zero totalEVL when all decisions were optimal', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const snapshots: DecisionSnapshot[] = [
+      makeOptimalDiscardSnapshot(hand, true, 0),
+    ];
+    const summary = analyzeHand(snapshots, 0);
+    expect(summary.totalEVL).toBeLessThan(0.1);
+    expect(summary.handIndex).toBe(0);
+    expect(summary.annotations).toHaveLength(1);
+  });
+
+  it('identifies the worst decision in the hand', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const opt = optimalDiscard(hand, true);
+    const worst = opt.allOptions[opt.allOptions.length - 1];
+    const snapshots: DecisionSnapshot[] = [
+      { type: 'discard', hand, playerChoice: [...worst.discard], isDealer: true, handIndex: 0 },
+    ];
+    const summary = analyzeHand(snapshots, 0);
+    expect(summary.worstDecision).not.toBeNull();
+    expect(summary.worstDecision!.evl).toBeGreaterThan(0);
+  });
+
+  it('aggregates EVL from multiple decisions', () => {
+    const hand = [c('A','H'), c('4','S'), c('7','D'), c('10','C'), c('Q','H'), c('K','S')];
+    const opt = optimalDiscard(hand, false);
+    const worstOpt = opt.allOptions[opt.allOptions.length - 1];
+    // Two suboptimal decisions
+    const snapshots: DecisionSnapshot[] = [
+      { type: 'discard', hand, playerChoice: [...worstOpt.discard], isDealer: false, handIndex: 0 },
+      { type: 'discard', hand, playerChoice: [...worstOpt.discard], isDealer: false, handIndex: 0 },
+    ];
+    const summary = analyzeHand(snapshots, 0);
+    expect(summary.annotations).toHaveLength(2);
+    expect(summary.totalEVL).toBeGreaterThan(0);
+  });
+
+  it('handles empty snapshots for a hand', () => {
+    const summary = analyzeHand([], 2);
+    expect(summary.handIndex).toBe(2);
+    expect(summary.totalEVL).toBe(0);
+    expect(summary.annotations).toHaveLength(0);
+    expect(summary.worstDecision).toBeNull();
+  });
+});
+
+describe('analyzeGame', () => {
+  it('returns A+ grade for all-optimal decisions', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const opt = optimalDiscard(hand, true);
+    const log: DecisionSnapshot[] = [
+      { type: 'discard', hand, playerChoice: [...opt.discard], isDealer: true, handIndex: 0 },
+    ];
+    const summary = analyzeGame(log);
+    expect(summary.grade).toBe('A+');
+    expect(summary.totalDecisions).toBe(1);
+    expect(summary.excellentCount).toBe(1);
+  });
+
+  it('returns poor grade for consistently poor decisions', () => {
+    const hand = [c('A','H'), c('4','S'), c('7','D'), c('10','C'), c('Q','H'), c('K','S')];
+    const opt = optimalDiscard(hand, false);
+    const worst = opt.allOptions[opt.allOptions.length - 1];
+    // Simulate many bad decisions
+    const log: DecisionSnapshot[] = Array.from({ length: 5 }, (_, i) => ({
+      type: 'discard' as const,
+      hand,
+      playerChoice: [...worst.discard],
+      isDealer: false,
+      handIndex: i,
+    }));
+    const summary = analyzeGame(log);
+    // Should be a poor grade (not A+)
+    expect(summary.grade).not.toBe('A+');
+    expect(summary.totalDecisions).toBe(5);
+  });
+
+  it('aggregates totalEVL across all hands', () => {
+    const hand = [c('A','H'), c('4','S'), c('7','D'), c('10','C'), c('Q','H'), c('K','S')];
+    const opt = optimalDiscard(hand, false);
+    const worst = opt.allOptions[opt.allOptions.length - 1];
+    const log: DecisionSnapshot[] = [
+      { type: 'discard', hand, playerChoice: [...worst.discard], isDealer: false, handIndex: 0 },
+      { type: 'discard', hand, playerChoice: [...worst.discard], isDealer: false, handIndex: 1 },
+    ];
+    const summary = analyzeGame(log);
+    expect(summary.hands).toHaveLength(2); // grouped by handIndex
+    expect(summary.totalEVL).toBeGreaterThan(0);
+    expect(summary.totalDecisions).toBe(2);
+  });
+
+  it('groups decisions by handIndex into hands', () => {
+    const hand = [c('5','H'), c('5','S'), c('5','D'), c('J','C'), c('9','H'), c('K','S')];
+    const opt = optimalDiscard(hand, true);
+    const log: DecisionSnapshot[] = [
+      { type: 'discard', hand, playerChoice: [...opt.discard], isDealer: true, handIndex: 0 },
+      { type: 'discard', hand, playerChoice: [...opt.discard], isDealer: true, handIndex: 0 },
+      { type: 'discard', hand, playerChoice: [...opt.discard], isDealer: true, handIndex: 1 },
+    ];
+    const summary = analyzeGame(log);
+    expect(summary.hands).toHaveLength(2);
+    expect(summary.hands[0].annotations).toHaveLength(2);
+    expect(summary.hands[1].annotations).toHaveLength(1);
+  });
+
+  it('handles empty decisionLog', () => {
+    const summary = analyzeGame([]);
+    expect(summary.totalEVL).toBe(0);
+    expect(summary.totalDecisions).toBe(0);
+    expect(summary.hands).toHaveLength(0);
+    expect(summary.grade).toBe('A+'); // no mistakes = perfect grade
+  });
+});
