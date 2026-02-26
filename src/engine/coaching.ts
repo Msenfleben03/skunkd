@@ -1,7 +1,7 @@
-import type { Card, DecisionSnapshot } from './types';
-import { cardValue } from './types';
+import type { Card, DecisionSnapshot, GameState, PeggingState, PlayerState } from './types';
+import { cardValue, RANKS, SUITS, createCard } from './types';
 import { optimalDiscard, optimalPeggingPlay } from './optimal';
-import { scorePeggingPlay } from './pegging';
+import { expectimaxPeggingPlay } from './expectimax';
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -103,33 +103,170 @@ function analyzeDiscard(snapshot: DecisionSnapshot): CoachingAnnotation {
   };
 }
 
+// ─── Synthetic GameState builder for Expectimax ─────────────────────────
+
+/**
+ * Build a full 52-card deck (used to create placeholder cards for opponent hand sizing).
+ */
+function buildPlaceholderDeck(): Card[] {
+  const deck: Card[] = [];
+  for (const rank of RANKS) {
+    for (const suit of SUITS) {
+      deck.push(createCard(rank, suit));
+    }
+  }
+  return deck;
+}
+
+/**
+ * Build a minimal synthetic GameState that enables expectimaxPeggingPlay
+ * to evaluate a single candidate card from the snapshot's perspective.
+ *
+ * The candidate card is placed as the sole card in the current player's hand,
+ * forcing the greedy rollout to play it first. The opponent's hand is given a
+ * realistic size (hand.length - 1 cards, mirroring alternating play patterns)
+ * filled with placeholder cards that randomizeOpponentHand will replace.
+ *
+ * The snapshot captures state BEFORE the card was played:
+ *   - snapshot.pile = sequence before this play (used as pegging.sequence)
+ *   - snapshot.count = count before this play
+ *   - snapshot.hand = all cards in hand at decision time (includes the played card)
+ */
+function buildSynthStateForCandidate(
+  snapshot: DecisionSnapshot,
+  candidateCard: Card,
+): GameState {
+  const pile = snapshot.pile ?? [];
+
+  // Estimate opponent hand size: opponent typically has the same number of remaining cards
+  // as the current player after this play (players alternate, so they're roughly equal).
+  // Clamp to [0, 4] for safety (max pegging hand is 4 cards after discard).
+  const opponentHandSize = Math.max(0, Math.min(4, snapshot.hand.length - 1));
+
+  // Build placeholder cards for the opponent. randomizeOpponentHand will replace
+  // these with random draws from the available pool (excluding pile + our hand + starter).
+  // We exclude the current player's remaining cards and the candidate from the placeholder
+  // pool to avoid id conflicts with knownIds that randomizeOpponentHand computes.
+  const knownIds = new Set<string>([
+    ...pile.map(c => c.id),
+    ...snapshot.hand.map(c => c.id),
+  ]);
+  const opponentPlaceholders = buildPlaceholderDeck()
+    .filter(c => !knownIds.has(c.id))
+    .slice(0, opponentHandSize);
+
+  const currentPlayerIndex = 0;
+
+  const currentPlayer: PlayerState = {
+    hand: [candidateCard],
+    score: 0,
+    pegFront: 0,
+    pegBack: 0,
+  };
+
+  const opponentPlayer: PlayerState = {
+    hand: opponentPlaceholders,  // size = opponentHandSize; content replaced by randomizeOpponentHand
+    score: 0,
+    pegFront: 0,
+    pegBack: 0,
+  };
+
+  const pegging: PeggingState = {
+    count: pile.reduce((sum, c) => sum + cardValue(c.rank), 0),
+    pile,            // used by randomizeOpponentHand to exclude known cards
+    sequence: pile,  // used by greedyRollout as the current scoring sequence
+    currentPlayerIndex,
+    goState: [false, false],
+    playerCards: [[candidateCard], opponentPlaceholders],
+    lastCardPlayerIndex: null,
+  };
+
+  return {
+    phase: 'PEGGING',
+    deck: [],
+    players: [currentPlayer, opponentPlayer],
+    crib: [],
+    starter: null,
+    dealerIndex: 1,
+    handNumber: 1,
+    pegging,
+    handStats: [
+      { pegging: 0, hand: 0, crib: 0 },
+      { pegging: 0, hand: 0, crib: 0 },
+    ],
+    winner: null,
+    decisionLog: [],
+  };
+}
+
+/**
+ * Evaluate a single candidate card using Expectimax pegging look-ahead.
+ *
+ * Builds a synthetic GameState where the candidate is the only card in the
+ * current player's hand, then runs expectimaxPeggingPlay with the configured
+ * determinizations and depth. This captures both the immediate score for
+ * playing the candidate AND the expected future value of the resulting position.
+ */
+function evalCandidateWithExpectimax(
+  snapshot: DecisionSnapshot,
+  candidateCard: Card,
+): number {
+  const count = snapshot.count ?? 0;
+  if (count + cardValue(candidateCard.rank) > 31) {
+    // Card not playable at this count
+    return 0;
+  }
+
+  const synthState = buildSynthStateForCandidate(snapshot, candidateCard);
+  const myScore = 0;
+  const opponentScore = 0;
+  return expectimaxPeggingPlay(synthState, myScore, opponentScore, 20, 3);
+}
+
 function analyzePeggingPlay(snapshot: DecisionSnapshot): CoachingAnnotation {
   const pile = snapshot.pile ?? [];
   const count = snapshot.count ?? 0;
 
+  // Get the optimal play recommendation (for the optimal card and reasoning text)
   const optResult = optimalPeggingPlay(snapshot.hand, pile, count);
 
-  // EV of optimal play = immediate points from recommended card
-  const evOptimal = optResult.points;
+  // ── Expectimax EVL ───────────────────────────────────────────────────────
+  // Evaluate every candidate card in the hand using Expectimax look-ahead.
+  // This captures immediate score + expected future value, replacing the
+  // immediate-points-only approach.
 
-  // EV of actual play = immediate points from the card the player chose
-  let evActual = 0;
-  if (snapshot.playerChoice.length > 0) {
-    const actualCard = snapshot.playerChoice[0];
-    const actualCount = count + cardValue(actualCard.rank);
-    if (actualCount <= 31) {
-      const actualNewPile = [...pile, actualCard];
-      evActual = scorePeggingPlay(actualNewPile).total;
+  // Find playable cards
+  const playable = snapshot.hand.filter(c => count + cardValue(c.rank) <= 31);
+
+  // evOptimal = max Expectimax EV across all playable options
+  let evOptimal = 0;
+  let bestCard: Card | null = null;
+  for (const card of playable) {
+    const ev = evalCandidateWithExpectimax(snapshot, card);
+    if (ev > evOptimal) {
+      evOptimal = ev;
+      bestCard = card;
     }
   }
-  // If playerChoice is empty, player declared Go — compare against Go (evOptimal=0)
+
+  // evActual = Expectimax EV of the card the player actually played
+  let evActual = 0;
+  if (snapshot.playerChoice.length > 0) {
+    const actualCard = snapshot.playerChoice[0]!;
+    evActual = evalCandidateWithExpectimax(snapshot, actualCard);
+  }
+  // If playerChoice is empty (Go), player couldn't play — evActual stays 0
 
   const evl = Math.max(0, evOptimal - evActual);
+
+  // Use the Expectimax-identified best card when it differs from optResult,
+  // but fall back to optResult.card for the reasoning string (richer text)
+  const optimalCard = bestCard ?? optResult.card;
 
   return {
     decision: 'pegging_play',
     actual: snapshot.playerChoice,
-    optimal: optResult.card ? [optResult.card] : [],
+    optimal: optimalCard ? [optimalCard] : [],
     evActual,
     evOptimal,
     evl,

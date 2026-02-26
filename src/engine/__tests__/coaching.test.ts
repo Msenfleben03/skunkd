@@ -96,10 +96,10 @@ describe('analyzeDecision — discard', () => {
 
 describe('analyzeDecision — pegging play', () => {
   it('returns excellent severity when player made the optimal pegging play', () => {
-    // count=21 (K=10 + J=10 + A=1), playing 10 makes 31 — optimal and obvious
-    // pile cards must sum to count for scorePeggingPlay to correctly detect 31
-    const hand = [c('10','H'), c('5','S'), c('A','D')];
-    const pile = [c('K','H'), c('J','S'), c('A','C')]; // 10+10+1=21
+    // count=21 (K=10 + 7=7 + 4=4), playing 10 makes 31 — optimal and obvious
+    // Pile has no Aces to avoid opponent Ace pair-royal bias in Expectimax rollouts
+    const hand = [c('10','H'), c('5','S')];
+    const pile = [c('K','H'), c('7','S'), c('4','C')]; // 10+7+4=21
     const snapshot: DecisionSnapshot = {
       type: 'pegging_play',
       hand,
@@ -112,17 +112,19 @@ describe('analyzeDecision — pegging play', () => {
     const annotation = analyzeDecision(snapshot);
     expect(annotation.severity).toBe('excellent');
     expect(annotation.evl).toBeLessThan(0.1);
-    expect(annotation.evOptimal).toBe(2); // 31 = 2 pts
+    // With expectimax, evOptimal includes immediate score + rollout EV (>= 2 pts for 31)
+    expect(annotation.evOptimal).toBeGreaterThanOrEqual(2);
   });
 
   it('returns positive EVL when player missed making 31', () => {
-    // count=21, optimal is to play 10 for 31, player played A instead
-    const hand = [c('10','H'), c('A','D')];
-    const pile: Card[] = [];
+    // count=21 (K=10 + J=10 + A=1), optimal is to play 10 for 31, player played 2 instead
+    // Pile must actually contain cards summing to 21 so Expectimax rollout sees correct count
+    const pile = [c('K','C'), c('J','D'), c('A','S')]; // 10+10+1=21
+    const hand = [c('10','H'), c('2','D')];
     const snapshot: DecisionSnapshot = {
       type: 'pegging_play',
       hand,
-      playerChoice: [c('A','D')],  // plays A instead of 10
+      playerChoice: [c('2','D')],  // plays 2 (count→23, 0 pts) instead of 10 (count→31, 2 pts)
       isDealer: false,
       pile,
       count: 21,
@@ -144,6 +146,77 @@ describe('analyzeDecision — pegging play', () => {
     };
     // Should not throw — Go is correct when no card is playable
     expect(() => analyzeDecision(snapshot)).not.toThrow();
+  });
+
+  it('uses expectimax EV for pegging play analysis — EVL > 0 for clearly suboptimal play', () => {
+    // count=21 (K=10 + J=10 + A=1), hand=[10H, 2D].
+    // Playing 10H makes 31 (2 pts) — optimal.
+    // Playing 2D makes count=23 (0 pts) — suboptimal.
+    // Pile must contain real cards summing to 21 so Expectimax sees correct count.
+    const pile = [c('K','C'), c('J','D'), c('A','S')]; // 10+10+1=21
+    const hand = [c('10','H'), c('2','D')];
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand,
+      playerChoice: [c('2','D')],  // plays 2 (count→23, 0 pts) instead of 10 (count→31, 2 pts)
+      isDealer: false,
+      pile,
+      count: 21,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    // EVL must be positive — playing 2 when 10 makes 31 is clearly suboptimal
+    expect(annotation.evl).toBeGreaterThan(0);
+    // Optimal EV must be >= 2 (at least the immediate 31 points)
+    expect(annotation.evOptimal).toBeGreaterThanOrEqual(2);
+    // Severity should reflect a meaningful mistake
+    expect(['minor', 'significant', 'major', 'critical']).toContain(annotation.severity);
+  });
+
+  it('uses expectimax EV — evActual and evOptimal are both non-negative', () => {
+    // A general property: EV values from expectimax should never be negative
+    const hand = [c('4','H'), c('7','S'), c('9','D')];
+    const pile = [c('5','C'), c('6','H')]; // count = 11
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand,
+      playerChoice: [c('4','H')],
+      isDealer: true,
+      pile,
+      count: 11,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    expect(annotation.evActual).toBeGreaterThanOrEqual(0);
+    expect(annotation.evOptimal).toBeGreaterThanOrEqual(0);
+    expect(annotation.evl).toBeGreaterThanOrEqual(0);
+  });
+
+  it('uses expectimax EV — evOptimal is highest EV among all candidates', () => {
+    // pile=[K, J, A] (count=21), hand=[10H, 5S, 2D].
+    // Playing 10H makes 31 = 2 pts. Playing 5S → count=26 (0 pts). Playing 2D → count=23 (0 pts).
+    // Expectimax EV of 10H = 2 + opponent future > 0 + opponent future (5S or 2D).
+    // evOptimal must correspond to the highest-EV candidate (10H in this case).
+    const pile = [c('K','C'), c('J','D'), c('A','S')]; // 10+10+1=21
+    const hand = [c('10','H'), c('5','S'), c('2','D')];
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand,
+      playerChoice: [c('10','H')],  // optimal: makes 31 for 2 pts
+      isDealer: false,
+      pile,
+      count: 21,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    // evOptimal is >= evActual (10H is optimal, player chose it)
+    expect(annotation.evOptimal).toBeGreaterThanOrEqual(annotation.evActual);
+    // EVL should be near 0 since player made the optimal play
+    expect(annotation.evl).toBeLessThan(0.1);
+    // evOptimal should be at least 2 (the 31 points)
+    expect(annotation.evOptimal).toBeGreaterThanOrEqual(2);
+    // severity: making 31 is the best play → excellent
+    expect(annotation.severity).toBe('excellent');
   });
 });
 
