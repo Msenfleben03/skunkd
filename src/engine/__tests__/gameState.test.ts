@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { Card, GameState, PlayerState, PeggingState } from '../types';
+import type { Card, GameState, PlayerState, PeggingState, DecisionSnapshot } from '../types';
 import { createCard } from '../types';
 import { createGame, gameReducer } from '../gameState';
 
@@ -439,5 +439,89 @@ describe('decisionLog initialization', () => {
   it('decisionLog persists through DEAL', () => {
     const game = gameReducer(createGame(2), { type: 'DEAL' });
     expect(game.decisionLog).toEqual([]);
+  });
+});
+
+describe('decisionLog snapshot recording', () => {
+  it('records a discard snapshot when player discards', () => {
+    let g = createGame(2);
+    g = gameReducer(g, { type: 'DEAL' });
+    const hand = g.players[0].hand;
+    const cardIds = [hand[0].id, hand[1].id];
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 0, cardIds });
+
+    expect(g.decisionLog).toHaveLength(1);
+    const snap = g.decisionLog[0];
+    expect(snap.type).toBe('discard');
+    expect(snap.hand).toHaveLength(6); // full 6-card hand before discard
+    expect(snap.playerChoice).toHaveLength(2);
+    expect(snap.playerChoice.map(c => c.id)).toEqual(cardIds);
+    expect(snap.handIndex).toBe(0); // first hand (0-based)
+  });
+
+  it('records correct isDealer flag for discard', () => {
+    let g = createGame(2);
+    g = gameReducer(g, { type: 'DEAL' });
+    // Player 0 is dealer (dealerIndex=0 in createGame)
+    const hand0 = g.players[0].hand;
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 0, cardIds: [hand0[0].id, hand0[1].id] });
+    expect(g.decisionLog[0].isDealer).toBe(true);
+
+    const hand1 = g.players[1].hand;
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 1, cardIds: [hand1[0].id, hand1[1].id] });
+    expect(g.decisionLog[1].isDealer).toBe(false);
+  });
+
+  it('records a pegging play snapshot when PLAY_CARD', () => {
+    let g = createGame(2);
+    g = gameReducer(g, { type: 'DEAL' });
+    const h0 = g.players[0].hand;
+    const h1 = g.players[1].hand;
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 0, cardIds: [h0[0].id, h0[1].id] });
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 1, cardIds: [h1[0].id, h1[1].id] });
+    g = gameReducer(g, { type: 'CUT' });
+
+    // Non-dealer plays first in pegging
+    const firstPlayer = g.pegging.currentPlayerIndex;
+    const firstCard = g.pegging.playerCards[firstPlayer][0];
+    const snapshotsBefore = g.decisionLog.length;
+    g = gameReducer(g, { type: 'PLAY_CARD', playerIndex: firstPlayer, cardId: firstCard.id });
+
+    expect(g.decisionLog.length).toBe(snapshotsBefore + 1);
+    const snap = g.decisionLog[g.decisionLog.length - 1];
+    expect(snap.type).toBe('pegging_play');
+    expect(snap.playerChoice).toHaveLength(1);
+    expect(snap.playerChoice[0].id).toBe(firstCard.id);
+    expect(snap.pile).toBeDefined();
+    expect(snap.count).toBeDefined();
+  });
+
+  it('pegging snapshot captures pile and count BEFORE the play', () => {
+    let g = createGame(2);
+    g = gameReducer(g, { type: 'DEAL' });
+    const h0 = g.players[0].hand;
+    const h1 = g.players[1].hand;
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 0, cardIds: [h0[0].id, h0[1].id] });
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 1, cardIds: [h1[0].id, h1[1].id] });
+    g = gameReducer(g, { type: 'CUT' });
+
+    // First play — pile should be empty, count=0 in snapshot
+    const firstPlayer = g.pegging.currentPlayerIndex;
+    const firstCard = g.pegging.playerCards[firstPlayer][0];
+    g = gameReducer(g, { type: 'PLAY_CARD', playerIndex: firstPlayer, cardId: firstCard.id });
+
+    const snap = g.decisionLog[g.decisionLog.length - 1];
+    expect(snap.pile).toHaveLength(0); // pile was empty before this play
+    expect(snap.count).toBe(0); // count was 0 before this play
+  });
+
+  it('decisionLog accumulates across multiple decisions', () => {
+    let g = createGame(2);
+    g = gameReducer(g, { type: 'DEAL' });
+    const h0 = g.players[0].hand;
+    const h1 = g.players[1].hand;
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 0, cardIds: [h0[0].id, h0[1].id] });
+    g = gameReducer(g, { type: 'DISCARD', playerIndex: 1, cardIds: [h1[0].id, h1[1].id] });
+    expect(g.decisionLog).toHaveLength(2); // 2 discard decisions
   });
 });

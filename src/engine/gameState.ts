@@ -1,4 +1,4 @@
-import type { Card, GameState, GameAction, PlayerState, PeggingState, HandStats } from './types';
+import type { Card, GameState, GameAction, PlayerState, PeggingState, HandStats, DecisionSnapshot } from './types';
 import { cardValue } from './types';
 import { createDeck, shuffle, deal } from './deck';
 import { scoreHand } from './scoring';
@@ -122,11 +122,21 @@ function handleDiscard(state: GameState, playerIndex: number, cardIds: string[])
   // Check if all players have discarded (hand size = HAND_SIZE)
   const allDiscarded = newPlayers.every(p => p.hand.length === HAND_SIZE);
 
+  // Record decision snapshot (full 6-card hand before discard)
+  const snapshot: DecisionSnapshot = {
+    type: 'discard',
+    hand: playerHand,
+    playerChoice: discardedCards,
+    isDealer: playerIndex === state.dealerIndex,
+    handIndex: state.handNumber - 1,
+  };
+
   return {
     ...state,
     phase: allDiscarded ? 'CUT_STARTER' : 'DISCARD_TO_CRIB',
     players: newPlayers,
     crib: newCrib,
+    decisionLog: [...state.decisionLog, snapshot],
   };
 }
 
@@ -193,6 +203,18 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
     throw new Error(`Playing ${cardId} would exceed 31 (count: ${state.pegging.count} + ${cardValue(playedCard.rank)} = ${newCount})`);
   }
 
+  // Record decision snapshot BEFORE updating pile/count
+  const snapshot: DecisionSnapshot = {
+    type: 'pegging_play',
+    hand: playerCards,
+    playerChoice: [playedCard],
+    isDealer: playerIndex === state.dealerIndex,
+    pile: state.pegging.sequence,
+    count: state.pegging.count,
+    handIndex: state.handNumber - 1,
+  };
+  const newDecisionLog = [...state.decisionLog, snapshot];
+
   // Update pegging state
   const newSequence = [...state.pegging.sequence, playedCard];
   const newPile = [...state.pegging.pile, playedCard];
@@ -219,6 +241,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
         lastCardPlayerIndex: playerIndex,
       },
       winner: playerIndex,
+      decisionLog: newDecisionLog,
     };
   }
 
@@ -246,6 +269,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
             lastCardPlayerIndex: playerIndex,
           },
           winner: playerIndex,
+          decisionLog: newDecisionLog,
         };
       }
     }
@@ -262,6 +286,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
         playerCards: newPlayerCards,
         lastCardPlayerIndex: playerIndex,
       },
+      decisionLog: newDecisionLog,
     };
   }
 
@@ -279,7 +304,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
       playerCards: newPlayerCards,
       lastCardPlayerIndex: playerIndex,
     };
-    return { ...state, players: newPlayers, pegging: resetPegging };
+    return { ...state, players: newPlayers, pegging: resetPegging, decisionLog: newDecisionLog };
   }
 
   // Normal play — switch to other player if they can play, otherwise stay
@@ -300,6 +325,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
       goState: state.pegging.goState.map(() => false),
       lastCardPlayerIndex: playerIndex,
     },
+    decisionLog: newDecisionLog,
   };
 }
 
