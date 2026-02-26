@@ -3,25 +3,10 @@
 // All RLS-filtered — callers only get data they're allowed to see.
 
 import { supabase } from './supabase';
+import type { Tables } from './database.types';
 
-// Inline types until `npx supabase gen types typescript --local` is run
-export interface Game {
-  id: string;
-  mode: 'vs_ai' | 'vs_human';
-  status: 'waiting' | 'active' | 'complete' | 'abandoned';
-  created_by: string;
-  invite_code: string;
-  is_async: boolean;
-  created_at: string;
-}
-
-export interface GamePlayer {
-  game_id: string;
-  user_id: string;
-  seat: number;
-  is_dealer: boolean;
-  is_ai: boolean;
-}
+export type Game = Tables<'games'>;
+export type GamePlayer = Tables<'game_players'>;
 
 export interface GameSummary {
   game: Game;
@@ -175,14 +160,14 @@ export async function recordScore(
   userId: string,
   source: 'pegging' | 'hand' | 'crib' | 'heels',
   points: number,
-  breakdown?: unknown
+  breakdown?: Record<string, unknown> | null
 ): Promise<void> {
   const { error } = await supabase.from('scores').insert({
     hand_id: handId,
     user_id: userId,
     source,
     points,
-    breakdown_json: breakdown ?? null,
+    breakdown_json: (breakdown ?? null) as import('./database.types').Json | null,
   });
 
   if (error) throw new Error(`Score record failed: ${error.message}`);
