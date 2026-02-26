@@ -405,6 +405,7 @@ function handleDeclareGo(state: GameState, playerIndex: number): GameState {
     return {
       ...state,
       players: newPlayers,
+      handStats: newHandStats,
       pegging: {
         ...state.pegging,
         count: 0,

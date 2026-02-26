@@ -352,6 +352,31 @@ describe('gameReducer — DECLARE_GO', () => {
     // Last card point to the last player who played
     expect(result.players[0].score).toBe(1);
   });
+
+  it('tracks last-card Go point in handStats when cards remain', () => {
+    // Both players say Go, cards still remaining — last-card point must appear in handStats
+    const state = makeState({
+      phase: 'PEGGING',
+      starter: card('K', 'D'),
+      pegging: makePegging({
+        count: 29,
+        sequence: [card('K', 'H'), card('Q', 'S'), card('9', 'D')],
+        pile: [card('K', 'H'), card('Q', 'S'), card('9', 'D')],
+        currentPlayerIndex: 1,
+        goState: [true, false],
+        playerCards: [
+          [card('8', 'H')], // 8 + 29 = 37 > 31 — can't play
+          [card('7', 'S')], // 7 + 29 = 36 > 31 — can't play
+        ],
+        lastCardPlayerIndex: 0, // player 0 played last
+      }),
+    });
+
+    const result = gameReducer(state, { type: 'DECLARE_GO', playerIndex: 1 });
+    // Player 0 scores 1 (last card) — tracked in handStats
+    expect(result.handStats[0].pegging).toBe(1);
+    expect(result.handStats[1].pegging).toBe(0);
+  });
 });
 
 describe('gameReducer — ADVANCE_SHOW', () => {
