@@ -2,6 +2,11 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GameScreen } from '../GameScreen';
 
+const mockNavigate = vi.fn();
+vi.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}));
+
 // Mock Supabase-dependent auth context so tests run without env vars
 vi.mock('@/context/AuthContext', () => ({
   useAuthContext: () => ({
@@ -40,7 +45,10 @@ vi.mock('@/lib/gameApi', () => ({
 }));
 
 describe('GameScreen', () => {
-  beforeEach(() => { vi.useFakeTimers(); });
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mockNavigate.mockClear();
+  });
   afterEach(() => { vi.useRealTimers(); });
 
   it('renders the start screen initially', () => {
@@ -98,5 +106,16 @@ describe('GameScreen', () => {
     await act(async () => { fireEvent.click(screen.getByTestId('deal-me-in-btn')); });
     // After clicking deal, we're in DEALING/DISCARD phase — not GAME_OVER
     expect(recordGameResult).not.toHaveBeenCalled();
+  });
+
+  it('shows My Stats button on start screen', () => {
+    render(<GameScreen />);
+    expect(screen.getByTestId('stats-btn')).toBeInTheDocument();
+  });
+
+  it('navigates to /stats when My Stats button is clicked', () => {
+    render(<GameScreen />);
+    fireEvent.click(screen.getByTestId('stats-btn'));
+    expect(mockNavigate).toHaveBeenCalledWith('/stats');
   });
 });

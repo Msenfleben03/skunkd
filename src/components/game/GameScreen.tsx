@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useGame } from '@/hooks/useGame';
 import { useAuthContext } from '@/context/AuthContext';
 import { createGame } from '@/lib/gameApi';
@@ -60,6 +61,7 @@ export function GameScreen({ className }: { className?: string }) {
   } = useGame();
 
   const auth = useAuthContext();
+  const navigate = useNavigate();
   const [showBoard, setShowBoard] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
@@ -359,6 +361,18 @@ export function GameScreen({ className }: { className?: string }) {
               }}
             >
               How to Play
+            </button>
+
+            {/* Stats */}
+            <button
+              className={cn(
+                'w-full rounded-xl py-3 px-8 font-semibold text-sm',
+                'text-cream/40 hover:text-cream/60 transition-colors',
+              )}
+              onClick={() => navigate('/stats')}
+              data-testid="stats-btn"
+            >
+              My Stats
             </button>
           </div>
 
