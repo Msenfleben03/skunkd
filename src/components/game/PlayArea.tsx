@@ -75,13 +75,13 @@ export function PlayArea({
         className,
       )}
     >
-      {/* Mascot action shot */}
+      {/* Mascot action shot — compact on mobile to preserve hand visibility */}
       {mascotSrc && (
         <img
           src={mascotSrc}
           alt=""
           aria-hidden="true"
-          className="w-[40vw] max-w-[200px] md:max-w-[240px] object-contain opacity-70 pointer-events-none"
+          className="w-[20vw] max-w-[96px] md:w-[30vw] md:max-w-[180px] object-contain opacity-70 pointer-events-none"
         />
       )}
 
