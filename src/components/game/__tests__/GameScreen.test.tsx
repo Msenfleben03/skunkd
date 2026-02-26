@@ -19,6 +19,12 @@ vi.mock('@/context/AuthContext', () => ({
   }),
 }));
 
+// Mock gemini so LLM components don't import supabase in tests
+vi.mock('@/lib/gemini', () => ({
+  callLLM: vi.fn().mockResolvedValue({ text: 'Mock STINKY response' }),
+  parseLLMJson: vi.fn((_, fallback) => fallback),
+}));
+
 // Mock gameApi so createGame doesn't hit Supabase in tests
 vi.mock('@/lib/gameApi', () => ({
   createGame: vi.fn().mockResolvedValue({
