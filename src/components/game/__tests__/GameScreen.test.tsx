@@ -1,6 +1,32 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { GameScreen } from '../GameScreen';
+
+// Mock Supabase-dependent auth context so tests run without env vars
+vi.mock('@/context/AuthContext', () => ({
+  useAuthContext: () => ({
+    user: null,
+    loading: false,
+    error: null,
+    signInAsGuest: vi.fn().mockResolvedValue(undefined),
+    signInWithEmail: vi.fn(),
+    signUpWithEmail: vi.fn(),
+    signInWithGoogle: vi.fn(),
+    signInWithApple: vi.fn(),
+    signOut: vi.fn(),
+    upgradeGuestAccount: vi.fn(),
+    clearError: vi.fn(),
+  }),
+}));
+
+// Mock gameApi so createGame doesn't hit Supabase in tests
+vi.mock('@/lib/gameApi', () => ({
+  createGame: vi.fn().mockResolvedValue({
+    game: { id: 'test-game-id', invite_code: 'ABC123', mode: 'vs_human', status: 'waiting', created_by: 'user-1', is_async: false, created_at: '' },
+    players: [],
+  }),
+  joinGame: vi.fn().mockResolvedValue({ game: {}, players: [] }),
+}));
 
 describe('GameScreen', () => {
   beforeEach(() => { vi.useFakeTimers(); });
@@ -17,24 +43,23 @@ describe('GameScreen', () => {
     expect(screen.getByTestId('deal-me-in-btn').textContent).toContain('Deal Me In');
   });
 
-  it('transitions to game screen after clicking Deal Me In', () => {
+  it('transitions to game screen after clicking Deal Me In', async () => {
     render(<GameScreen />);
-    fireEvent.click(screen.getByTestId('deal-me-in-btn'));
-    // After new game, we should see the game screen (score panel appears)
+    await act(async () => { fireEvent.click(screen.getByTestId('deal-me-in-btn')); });
     expect(screen.getByTestId('score-panel')).toBeInTheDocument();
     expect(screen.getByTestId('action-bar')).toBeInTheDocument();
   });
 
-  it('shows scores as 0-0 at game start', () => {
+  it('shows scores as 0-0 at game start', async () => {
     render(<GameScreen />);
-    fireEvent.click(screen.getByTestId('deal-me-in-btn'));
+    await act(async () => { fireEvent.click(screen.getByTestId('deal-me-in-btn')); });
     expect(screen.getByLabelText(/Your score: 0/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Opponent score: 0/)).toBeInTheDocument();
   });
 
-  it('shows and hides board on toggle', () => {
+  it('shows and hides board on toggle', async () => {
     render(<GameScreen />);
-    fireEvent.click(screen.getByTestId('deal-me-in-btn'));
+    await act(async () => { fireEvent.click(screen.getByTestId('deal-me-in-btn')); });
     // Board not shown initially
     expect(screen.queryByTestId('cribbage-board')).toBeNull();
     // Click score panel to toggle board
@@ -43,5 +68,16 @@ describe('GameScreen', () => {
     // Click again to hide
     fireEvent.click(screen.getByTestId('score-panel'));
     expect(screen.queryByTestId('cribbage-board')).toBeNull();
+  });
+
+  it('shows Play Online button on start screen', () => {
+    render(<GameScreen />);
+    expect(screen.getByTestId('play-online-btn')).toBeInTheDocument();
+  });
+
+  it('navigates to online menu when Play Online is clicked', () => {
+    render(<GameScreen />);
+    fireEvent.click(screen.getByTestId('play-online-btn'));
+    expect(screen.getByTestId('create-game-btn')).toBeInTheDocument();
   });
 });

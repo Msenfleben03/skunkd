@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useGame } from '@/hooks/useGame';
+import { useAuthContext } from '@/context/AuthContext';
+import { createGame } from '@/lib/gameApi';
 import { cn } from '@/lib/utils';
 import { ScorePanel } from './ScorePanel';
 import { CribbageBoard } from './CribbageBoard';
@@ -10,6 +12,15 @@ import { ShowScoring } from './ShowScoring';
 import { PeggingScore } from './PeggingScore';
 import { HandSummary } from './HandSummary';
 import { GameOver } from './GameOver';
+import { ShareLink } from './ShareLink';
+import { AuthModal } from '@/components/auth/AuthModal';
+
+type OnlineStep = null | 'menu' | 'creating' | 'waiting' | 'join-input';
+
+interface PendingOnlineGame {
+  gameId: string;
+  inviteCode: string;
+}
 
 const HUMAN_PLAYER = 0;
 const AI_PLAYER = 1;
@@ -44,7 +55,43 @@ export function GameScreen({ className }: { className?: string }) {
     nextHand,
   } = useGame();
 
+  const auth = useAuthContext();
   const [showBoard, setShowBoard] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [onlineStep, setOnlineStep] = useState<OnlineStep>(null);
+  const [pendingGame, setPendingGame] = useState<PendingOnlineGame | null>(null);
+  const [joinCode, setJoinCode] = useState('');
+  const [onlineError, setOnlineError] = useState<string | null>(null);
+
+  // Start a vs-AI game: auto-sign-in as guest if needed, then start local game
+  const handleStartVsAI = useCallback(async () => {
+    if (!auth.user) {
+      await auth.signInAsGuest();
+    }
+    setOnlineStep(null);
+    newGame();
+  }, [auth, newGame]);
+
+  // Create a new online (vs-human) game
+  const handleCreateOnlineGame = useCallback(async () => {
+    setOnlineError(null);
+    setOnlineStep('creating');
+    try {
+      if (!auth.user) await auth.signInAsGuest();
+      const { game } = await createGame('vs_human');
+      setPendingGame({ gameId: game.id, inviteCode: game.invite_code });
+      setOnlineStep('waiting');
+    } catch (e) {
+      setOnlineError(e instanceof Error ? e.message : 'Failed to create game');
+      setOnlineStep('menu');
+    }
+  }, [auth]);
+
+  // Navigate to join page programmatically (or use router)
+  const handleJoinWithCode = useCallback(() => {
+    if (joinCode.trim().length < 4) return;
+    window.location.href = `/join/${joinCode.trim().toUpperCase()}`;
+  }, [joinCode]);
 
   const { phase, players, pegging, starter, crib, dealerIndex, handNumber, handStats, winner } =
     gameState;
@@ -66,6 +113,144 @@ export function GameScreen({ className }: { className?: string }) {
   // ── Start screen ─────────────────────────────────────────────────────────
 
   if (phase === 'GAME_START') {
+    const bgStyle = {
+      background: 'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
+    };
+    const feltOverlay = (
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          opacity: 0.045,
+          mixBlendMode: 'overlay',
+        }}
+      />
+    );
+    const vignette = (
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(0,0,0,0.72) 100%)' }}
+      />
+    );
+
+    // ── Online game creation / waiting screen ────────────────────────────────
+    if (onlineStep === 'menu' || onlineStep === 'creating') {
+      return (
+        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', className)} style={bgStyle}>
+          {feltOverlay}{vignette}
+          <div className="relative z-10 text-center px-8 max-w-xs w-full animate-float-in">
+            <img src="/skunkd-logo.png" alt="SKUNK'D" className="w-24 h-24 object-contain mx-auto mb-4 opacity-90" />
+            <h2 className="text-xl font-black text-gold mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Play Online
+            </h2>
+            {onlineError && <p className="text-red-400 text-xs mb-4">{onlineError}</p>}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleCreateOnlineGame}
+                disabled={onlineStep === 'creating'}
+                className={cn(
+                  'w-full py-4 rounded-xl font-black text-lg bg-gold text-skunk-dark',
+                  'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
+                  'disabled:opacity-60 disabled:cursor-not-allowed',
+                )}
+                style={{ fontFamily: "'Playfair Display', serif" }}
+                data-testid="create-game-btn"
+              >
+                {onlineStep === 'creating' ? 'Creating…' : 'Create Game'}
+              </button>
+              <button
+                onClick={() => setOnlineStep('join-input')}
+                className="w-full py-3 rounded-xl text-sm font-semibold border border-white/10 text-cream/70 hover:text-cream hover:border-white/20 transition-all"
+              >
+                Join a Game
+              </button>
+              <button
+                onClick={() => setOnlineStep(null)}
+                className="w-full py-2.5 text-xs text-cream/35 hover:text-cream/60 transition-colors"
+              >
+                ← Back
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Waiting for opponent after creating game ──────────────────────────────
+    if (onlineStep === 'waiting' && pendingGame) {
+      return (
+        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', className)} style={bgStyle}>
+          {feltOverlay}{vignette}
+          <div className="relative z-10 text-center px-8 max-w-xs w-full animate-float-in">
+            <img src="/skunkd-logo.png" alt="SKUNK'D" className="w-20 h-20 object-contain mx-auto mb-4 opacity-80" />
+            <h2 className="text-xl font-black text-gold mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Waiting for Opponent
+            </h2>
+            <p className="text-cream/40 text-xs mb-6">Share this code to challenge a friend:</p>
+            <ShareLink inviteCode={pendingGame.inviteCode} className="mb-6" />
+            <button
+              onClick={() => { setOnlineStep(null); setPendingGame(null); }}
+              className="w-full py-2.5 text-xs text-cream/35 hover:text-cream/60 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Join by code input ────────────────────────────────────────────────────
+    if (onlineStep === 'join-input') {
+      return (
+        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', className)} style={bgStyle}>
+          {feltOverlay}{vignette}
+          <div className="relative z-10 text-center px-8 max-w-xs w-full animate-float-in">
+            <img src="/skunkd-logo.png" alt="SKUNK'D" className="w-24 h-24 object-contain mx-auto mb-4 opacity-90" />
+            <h2 className="text-xl font-black text-gold mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+              Enter Game Code
+            </h2>
+            <input
+              type="text"
+              placeholder="ABC123"
+              value={joinCode}
+              onChange={e => setJoinCode(e.target.value.toUpperCase())}
+              maxLength={6}
+              className={cn(
+                'w-full px-4 py-4 rounded-xl text-center text-2xl font-black tracking-widest mb-4',
+                'bg-white/5 border border-white/10 text-gold placeholder-cream/20',
+                'focus:outline-none focus:border-gold/60 transition-colors',
+              )}
+              style={{ fontFamily: "'Playfair Display', serif" }}
+              data-testid="join-code-input"
+              onKeyDown={e => e.key === 'Enter' && handleJoinWithCode()}
+            />
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleJoinWithCode}
+                disabled={joinCode.trim().length < 4}
+                className={cn(
+                  'w-full py-4 rounded-xl font-black text-lg bg-gold text-skunk-dark',
+                  'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
+                  'disabled:opacity-40 disabled:cursor-not-allowed',
+                )}
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Join Game
+              </button>
+              <button
+                onClick={() => setOnlineStep('menu')}
+                className="w-full py-2.5 text-xs text-cream/35 hover:text-cream/60 transition-colors"
+              >
+                ← Back
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // ── Main start screen ─────────────────────────────────────────────────────
     return (
       <div
         className={cn(
@@ -73,29 +258,9 @@ export function GameScreen({ className }: { className?: string }) {
           'relative overflow-hidden',
           className,
         )}
-        style={{
-          background:
-            'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
-        }}
+        style={bgStyle}
       >
-        {/* Felt noise texture overlay */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage:
-              "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-            opacity: 0.045,
-            mixBlendMode: 'overlay',
-          }}
-        />
-        {/* Radial vignette */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 50%, transparent 38%, rgba(0,0,0,0.72) 100%)',
-          }}
-        />
+        {feltOverlay}{vignette}
 
         <div className="relative z-10 text-center px-8 max-w-xs w-full">
           {/* SKUNK'D logo with idle float animation */}
@@ -128,27 +293,41 @@ export function GameScreen({ className }: { className?: string }) {
             className="animate-float-in flex flex-col gap-3"
             style={{ animationDelay: '0.3s' }}
           >
-            {/* Primary CTA */}
+            {/* Primary CTA — vs AI */}
             <button
               className={cn(
                 'w-full rounded-xl py-4 px-8 font-black text-xl',
                 'bg-gold text-skunk-dark shadow-xl shadow-gold/30',
                 'hover:bg-gold-bright hover:shadow-gold/50 hover:scale-[1.02]',
                 'transition-all duration-150 active:scale-[0.97]',
+                'disabled:opacity-60 disabled:cursor-not-allowed',
               )}
-              onClick={newGame}
+              onClick={handleStartVsAI}
+              disabled={auth.loading}
               data-testid="deal-me-in-btn"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              Deal Me In
+              {auth.loading ? 'Loading…' : 'Deal Me In'}
+            </button>
+
+            {/* Play Online */}
+            <button
+              className={cn(
+                'w-full rounded-xl py-3 px-8 font-semibold text-sm',
+                'border border-white/10 text-cream/55',
+                'hover:border-white/20 hover:text-cream/80 transition-all duration-150',
+              )}
+              onClick={() => setOnlineStep('menu')}
+              data-testid="play-online-btn"
+            >
+              Play Online
             </button>
 
             {/* How to Play */}
             <button
               className={cn(
                 'w-full rounded-xl py-3 px-8 font-semibold text-sm',
-                'border border-white/10 text-cream/55',
-                'hover:border-white/20 hover:text-cream/80 transition-all duration-150',
+                'text-cream/40 hover:text-cream/60 transition-colors',
               )}
               onClick={() => {
                 /* TODO: Phase 3.3 — how to play modal */
@@ -156,28 +335,30 @@ export function GameScreen({ className }: { className?: string }) {
             >
               How to Play
             </button>
-
-            {/* Online — coming soon */}
-            <button
-              className={cn(
-                'w-full rounded-xl py-2.5 px-8 font-medium text-xs',
-                'border border-white/[0.06] text-cream/25',
-                'cursor-not-allowed select-none',
-              )}
-              disabled
-              aria-label="Online play — coming soon"
-            >
-              Play Online — Coming Soon
-            </button>
           </div>
 
+          {/* Auth status */}
+          {auth.user && !auth.user.isGuest && (
+            <p
+              className="animate-float-in text-cream/30 text-[9px] mt-4"
+              style={{ animationDelay: '0.48s' }}
+            >
+              Signed in as {auth.user.displayName}
+            </p>
+          )}
+
           <p
-            className="animate-float-in text-cream/15 text-[9px] mt-5"
-            style={{ animationDelay: '0.48s' }}
+            className="animate-float-in text-cream/15 text-[9px] mt-2"
+            style={{ animationDelay: '0.55s' }}
           >
             Get skunked below 91 and you'll never live it down.
           </p>
         </div>
+
+        {/* Auth modal overlay */}
+        {showAuthModal && (
+          <AuthModal onClose={() => setShowAuthModal(false)} />
+        )}
       </div>
     );
   }
