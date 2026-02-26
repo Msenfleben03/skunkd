@@ -1,4 +1,6 @@
 import type { Card, Rank } from './types';
+import { RANKS, SUITS } from './types';
+import { scoreHand } from './scoring';
 
 const RANK_ORDER: readonly Rank[] = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 
@@ -52,4 +54,57 @@ const CRIB_EV_TABLE: Record<string, number> = {
 export function lookupCribEV(c1: Card, c2: Card): number {
   const key = sortedRankPair(c1.rank, c2.rank);
   return CRIB_EV_TABLE[key] ?? 3.50;
+}
+
+/** Pick `count` random items from array using partial Fisher-Yates (in-place, returns items). */
+function pickRandom(arr: readonly Card[], count: number): Card[] {
+  const pool = [...arr];
+  const n = pool.length;
+  const picked: Card[] = [];
+  for (let i = 0; i < count && i < n; i++) {
+    const j = i + Math.floor(Math.random() * (n - i));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+    picked.push(pool[i]);
+  }
+  return picked;
+}
+
+/**
+ * Monte Carlo estimate of crib expected value for a specific discard pair.
+ *
+ * Samples `samples` random completions of the crib (2 random opponent discards
+ * + 1 random starter) from the non-known cards. Returns average crib score.
+ * Uniform sampling — no weighted opponent discard bias (future enhancement).
+ *
+ * Used in the coaching path only. Gameplay AI uses `lookupCribEV` for speed.
+ *
+ * @param discard - The 2 cards being discarded to the crib
+ * @param knownCards - All cards visible to this player (hand + any revealed cards)
+ * @param samples - Number of random completions to simulate (default: 500)
+ */
+export function monteCartoCribEV(
+  discard: readonly [Card, Card],
+  knownCards: readonly Card[],
+  samples = 500,
+): number {
+  // Build deck of cards not yet known
+  const knownIds = new Set(knownCards.map(c => c.id));
+  const remaining: Card[] = [];
+  for (const rank of RANKS) {
+    for (const suit of SUITS) {
+      const id = `${rank}-${suit}`;
+      if (!knownIds.has(id)) remaining.push({ rank, suit, id });
+    }
+  }
+
+  // Need at least 3 unknown cards: 2 opponent discards + 1 starter
+  if (remaining.length < 3) return lookupCribEV(discard[0], discard[1]);
+
+  let total = 0;
+  for (let i = 0; i < samples; i++) {
+    const [opp1, opp2, starter] = pickRandom(remaining, 3);
+    const crib: Card[] = [discard[0], discard[1], opp1, opp2];
+    total += scoreHand(crib, starter, true).total;
+  }
+  return total / samples;
 }
