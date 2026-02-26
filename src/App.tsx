@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { GameScreen } from '@/components/game/GameScreen';
 import { Join } from '@/pages/Join';
+import { StatsPage } from '@/pages/StatsPage';
 import './index.css';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
         <Routes>
           <Route path="/" element={<GameScreen />} />
           <Route path="/join/:code" element={<Join />} />
+          <Route path="/stats" element={<StatsPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
