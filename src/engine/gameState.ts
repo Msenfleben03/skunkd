@@ -225,6 +225,9 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
   // Score the play
   const peggingScore = scorePeggingPlay(newSequence);
   let newPlayers = addScore(state.players, playerIndex, peggingScore.total);
+  let newHandStats = peggingScore.total > 0
+    ? updateHandStats(state.handStats, playerIndex, 'pegging', peggingScore.total)
+    : state.handStats;
 
   // Check for win after pegging score
   if (newPlayers[playerIndex].score >= WIN_SCORE) {
@@ -232,6 +235,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
       ...state,
       phase: 'GAME_OVER',
       players: newPlayers,
+      handStats: newHandStats,
       pegging: {
         ...state.pegging,
         count: newCount,
@@ -255,11 +259,13 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
     // Award last card point (1pt) unless we already scored 31 (which includes the 2pts)
     if (!hit31) {
       newPlayers = addScore(newPlayers, playerIndex, 1);
+      newHandStats = updateHandStats(newHandStats, playerIndex, 'pegging', 1);
       if (newPlayers[playerIndex].score >= WIN_SCORE) {
         return {
           ...state,
           phase: 'GAME_OVER',
           players: newPlayers,
+          handStats: newHandStats,
           pegging: {
             ...state.pegging,
             count: newCount,
@@ -278,6 +284,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
       ...state,
       phase: 'SHOW_NONDEALER',
       players: newPlayers,
+      handStats: newHandStats,
       pegging: {
         ...state.pegging,
         count: newCount,
@@ -304,7 +311,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
       playerCards: newPlayerCards,
       lastCardPlayerIndex: playerIndex,
     };
-    return { ...state, players: newPlayers, pegging: resetPegging, decisionLog: newDecisionLog };
+    return { ...state, players: newPlayers, handStats: newHandStats, pegging: resetPegging, decisionLog: newDecisionLog };
   }
 
   // Normal play — switch to other player if they can play, otherwise stay
@@ -315,6 +322,7 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
   return {
     ...state,
     players: newPlayers,
+    handStats: newHandStats,
     pegging: {
       ...state.pegging,
       count: newCount,
@@ -354,14 +362,17 @@ function handleDeclareGo(state: GameState, playerIndex: number): GameState {
   if (allGo) {
     // Award last card point (1pt) to last player who played
     let newPlayers = state.players;
+    let newHandStats = state.handStats;
     if (state.pegging.lastCardPlayerIndex !== null) {
       newPlayers = addScore(state.players, state.pegging.lastCardPlayerIndex, 1);
+      newHandStats = updateHandStats(state.handStats, state.pegging.lastCardPlayerIndex, 'pegging', 1);
 
       if (newPlayers[state.pegging.lastCardPlayerIndex].score >= WIN_SCORE) {
         return {
           ...state,
           phase: 'GAME_OVER',
           players: newPlayers,
+          handStats: newHandStats,
           winner: state.pegging.lastCardPlayerIndex,
         };
       }
@@ -374,6 +385,7 @@ function handleDeclareGo(state: GameState, playerIndex: number): GameState {
         ...state,
         phase: 'SHOW_NONDEALER',
         players: newPlayers,
+        handStats: newHandStats,
         pegging: {
           ...state.pegging,
           count: 0,

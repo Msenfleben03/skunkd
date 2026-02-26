@@ -166,6 +166,7 @@ export function useGame(): UseGameReturn {
     return clearTimer;
   }, [
     gameState.phase,
+    gameState.players[HUMAN_PLAYER].hand.length,
     gameState.pegging.currentPlayerIndex,
     gameState.pegging.count,
     gameState.pegging.pile.length,
