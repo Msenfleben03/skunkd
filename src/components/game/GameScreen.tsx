@@ -474,6 +474,7 @@ export function GameScreen({ className }: { className?: string }) {
               scoring={showScoring.scoring}
             />
             <ScoreExplanation
+              key={showScoring.label}
               label={showScoring.label}
               cards={showScoring.cards}
               starter={showScoring.starter}

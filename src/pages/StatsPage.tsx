@@ -10,12 +10,13 @@ function winRate(wins: number, played: number): string {
 
 export function StatsPage() {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user, loading: authLoading } = useAuthContext();
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [loading, setLoading] = useState(true);
 
   const userId = user?.id;
   useEffect(() => {
+    if (authLoading) return;
     if (!userId) { navigate('/'); return; }
     let cancelled = false;
     (async () => {
@@ -33,7 +34,7 @@ export function StatsPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [userId, navigate]);
+  }, [userId, navigate, authLoading]);
 
   const bgStyle = {
     background: 'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
