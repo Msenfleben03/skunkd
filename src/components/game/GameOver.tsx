@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { MatchAnalysis } from './MatchAnalysis';
 
 export interface GameOverProps {
   /** Index of the winner (0 = human, 1 = AI) */
@@ -8,6 +9,8 @@ export interface GameOverProps {
   /** Opponent's final score */
   opponentScore: number;
   onPlayAgain: () => void;
+  /** Number of hands played in this game */
+  handsPlayed?: number;
   className?: string;
 }
 
@@ -43,6 +46,7 @@ export function GameOver({
   playerScore,
   opponentScore,
   onPlayAgain,
+  handsPlayed,
   className,
 }: GameOverProps) {
   const humanWon = winnerIndex === 0;
@@ -119,6 +123,16 @@ export function GameOver({
 
         {/* Flavour text */}
         <p className="text-cream/50 text-sm italic leading-relaxed">{subMessage}</p>
+
+        {/* Match analysis */}
+        <MatchAnalysis
+          playerScore={playerScore}
+          opponentScore={opponentScore}
+          humanWon={humanWon}
+          handsPlayed={handsPlayed}
+          skunkType={skunk}
+          className="w-full"
+        />
 
         {/* Actions */}
         <div className="flex flex-col gap-2.5 w-full mt-1">

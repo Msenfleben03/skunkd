@@ -9,11 +9,14 @@ import { PlayArea } from './PlayArea';
 import { PlayerHand } from './PlayerHand';
 import { ActionBar } from './ActionBar';
 import { ShowScoring } from './ShowScoring';
+import { ScoreExplanation } from './ScoreExplanation';
 import { PeggingScore } from './PeggingScore';
 import { HandSummary } from './HandSummary';
+import { HandReview } from './HandReview';
 import { GameOver } from './GameOver';
 import { ShareLink } from './ShareLink';
 import { AuthModal } from '@/components/auth/AuthModal';
+import { ChatPanel } from '@/components/chat/ChatPanel';
 
 type OnlineStep = null | 'menu' | 'creating' | 'waiting' | 'join-input';
 
@@ -58,6 +61,8 @@ export function GameScreen({ className }: { className?: string }) {
   const auth = useAuthContext();
   const [showBoard, setShowBoard] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [activeOnlineGameId, setActiveOnlineGameId] = useState<string | null>(null);
   const [onlineStep, setOnlineStep] = useState<OnlineStep>(null);
   const [pendingGame, setPendingGame] = useState<PendingOnlineGame | null>(null);
   const [joinCode, setJoinCode] = useState('');
@@ -80,6 +85,7 @@ export function GameScreen({ className }: { className?: string }) {
       if (!auth.user) await auth.signInAsGuest();
       const { game } = await createGame('vs_human');
       setPendingGame({ gameId: game.id, inviteCode: game.invite_code });
+      setActiveOnlineGameId(game.id);
       setOnlineStep('waiting');
     } catch (e) {
       setOnlineError(e instanceof Error ? e.message : 'Failed to create game');
@@ -368,7 +374,7 @@ export function GameScreen({ className }: { className?: string }) {
   if (phase === 'HAND_COMPLETE') {
     return (
       <div
-        className="h-screen flex items-center justify-center"
+        className="h-screen flex flex-col items-center justify-center overflow-y-auto py-6 px-4 gap-4"
         style={{ background: 'radial-gradient(ellipse at 50% 40%, #1a3d2b 0%, #0D0D1A 70%)' }}
       >
         <HandSummary
@@ -378,6 +384,12 @@ export function GameScreen({ className }: { className?: string }) {
           playerTotalScore={player.score}
           opponentTotalScore={opponent.score}
           onNextHand={nextHand}
+        />
+        <HandReview
+          handNumber={handNumber}
+          playerStats={handStats[HUMAN_PLAYER]}
+          opponentStats={handStats[AI_PLAYER]}
+          className="max-w-sm w-full"
         />
       </div>
     );
@@ -422,12 +434,19 @@ export function GameScreen({ className }: { className?: string }) {
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
         {/* Show scoring OR play area */}
         {SHOW_PHASES.has(phase) && showScoring ? (
-          <div className="flex-1 flex items-center justify-center overflow-y-auto py-4">
+          <div className="flex-1 flex flex-col items-center overflow-y-auto py-4 px-4 gap-3">
             <ShowScoring
               label={showScoring.label}
               cards={showScoring.cards}
               starter={showScoring.starter}
               scoring={showScoring.scoring}
+            />
+            <ScoreExplanation
+              label={showScoring.label}
+              cards={showScoring.cards}
+              starter={showScoring.starter}
+              scoring={showScoring.scoring}
+              className="max-w-sm w-full"
             />
           </div>
         ) : (
@@ -481,6 +500,30 @@ export function GameScreen({ className }: { className?: string }) {
         onNewGame={newGame}
       />
 
+      {/* Chat toggle button — online games only */}
+      {activeOnlineGameId && auth.user && (
+        <button
+          onClick={() => setChatOpen(o => !o)}
+          className="absolute bottom-20 right-4 z-30 w-10 h-10 rounded-full bg-skunk-dark border border-white/15 flex items-center justify-center text-cream/50 hover:text-cream/80 hover:border-white/25 transition-all shadow-lg"
+          aria-label="Toggle chat"
+          data-testid="chat-toggle-btn"
+        >
+          💬
+        </button>
+      )}
+
+      {/* Chat panel — online games only */}
+      {activeOnlineGameId && auth.user && (
+        <ChatPanel
+          gameId={activeOnlineGameId}
+          userId={auth.user.id}
+          displayName={auth.user.displayName}
+          gameContext={`Hand ${handNumber}, scores: ${player.score}–${opponent.score}`}
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
+
       {/* Game over overlay */}
       {phase === 'GAME_OVER' && winner !== null && (
         <GameOver
@@ -488,6 +531,7 @@ export function GameScreen({ className }: { className?: string }) {
           playerScore={player.score}
           opponentScore={opponent.score}
           onPlayAgain={newGame}
+          handsPlayed={handNumber}
         />
       )}
     </div>
