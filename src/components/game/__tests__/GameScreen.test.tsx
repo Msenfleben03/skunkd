@@ -25,6 +25,11 @@ vi.mock('@/lib/gemini', () => ({
   parseLLMJson: vi.fn((_, fallback) => fallback),
 }));
 
+// Mock statsApi so recordGameResult doesn't hit Supabase in tests
+vi.mock('@/lib/statsApi', () => ({
+  recordGameResult: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock gameApi so createGame doesn't hit Supabase in tests
 vi.mock('@/lib/gameApi', () => ({
   createGame: vi.fn().mockResolvedValue({
@@ -85,5 +90,13 @@ describe('GameScreen', () => {
     render(<GameScreen />);
     fireEvent.click(screen.getByTestId('play-online-btn'));
     expect(screen.getByTestId('create-game-btn')).toBeInTheDocument();
+  });
+
+  it('does not call recordGameResult during normal gameplay', async () => {
+    const { recordGameResult } = await import('@/lib/statsApi');
+    render(<GameScreen />);
+    await act(async () => { fireEvent.click(screen.getByTestId('deal-me-in-btn')); });
+    // After clicking deal, we're in DEALING/DISCARD phase — not GAME_OVER
+    expect(recordGameResult).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,8 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useGame } from '@/hooks/useGame';
 import { useAuthContext } from '@/context/AuthContext';
 import { createGame } from '@/lib/gameApi';
+import { recordGameResult } from '@/lib/statsApi';
 import { cn } from '@/lib/utils';
 import { ScorePanel } from './ScorePanel';
 import { CribbageBoard } from './CribbageBoard';
@@ -104,6 +105,24 @@ export function GameScreen({ className }: { className?: string }) {
 
   const player = players[HUMAN_PLAYER];
   const opponent = players[AI_PLAYER];
+
+  // Reset save guard when a new game deals
+  const savedRef = useRef(false);
+  useEffect(() => {
+    if (phase === 'DEALING') savedRef.current = false;
+  }, [phase]);
+
+  // Save result once when game ends
+  useEffect(() => {
+    if (phase !== 'GAME_OVER' || winner === null || !auth.user || savedRef.current) return;
+    savedRef.current = true;
+    recordGameResult({
+      userId: auth.user.id,
+      won: winner === HUMAN_PLAYER,
+      playerScore: player.score,
+      opponentScore: opponent.score,
+    }).catch(console.error);
+  }, [phase, winner, auth.user, player.score, opponent.score]);
 
   // Cards the human plays from during pegging
   const humanPeggingCards = pegging.playerCards[HUMAN_PLAYER] ?? [];
