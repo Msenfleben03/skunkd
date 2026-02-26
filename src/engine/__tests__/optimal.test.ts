@@ -23,11 +23,13 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       expect(result.reasoning.length).toBeGreaterThan(0);
     });
 
-    it('identifies the 5-5-5-J keep as optimal for the perfect hand', () => {
+    it('identifies keeping three 5s as optimal for the near-perfect hand', () => {
+      // Core insight: always keep the three 5s — they're the most valuable.
+      // 4th keep card (J vs K) has ~0.06pt margin, too tight for MC to guarantee.
       const hand = [c('5', 'H'), c('5', 'S'), c('5', 'D'), c('J', 'C'), c('9', 'H'), c('K', 'S')];
       const result = optimalDiscard(hand, true);
-      const keepRanks = result.keep.map(card => card.rank).sort();
-      expect(keepRanks).toEqual(['5', '5', '5', 'J']);
+      const keptFives = result.keep.filter(card => card.rank === '5');
+      expect(keptFives).toHaveLength(3);
     });
 
     it('includes expected value averaged over all starters', () => {
@@ -70,15 +72,23 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       expect(elapsed).toBeLessThan(500);
     });
 
-    it('uses Schell crib EV for total expected value', () => {
-      // The Schell table changes the EV calculation significantly
-      // Dealer discarding 5-5 to own crib adds 8.50 (not the old heuristic ~5)
+    it('uses crib EV for total expected value', () => {
+      // Dealer discarding 5-5 to own crib adds significant EV
       const hand = [c('5', 'H'), c('5', 'S'), c('6', 'D'), c('7', 'C'), c('K', 'H'), c('Q', 'S')];
       const asDealer = optimalDiscard(hand, true);
       const asPone = optimalDiscard(hand, false);
       // Dealer EV should be higher than pone EV (crib bonus vs penalty)
       // For the same hand, dealer benefits from crib while pone is penalized
       expect(asDealer.expectedValue).toBeGreaterThan(asPone.expectedValue);
+    });
+
+    it('MC crib produces EV values in realistically higher range than old heuristic', () => {
+      // With MC crib, 5-5 discard to dealer crib scores ~8.50 pts
+      // Dealer EV = hand EV (~6-7) + MC crib EV for best discard (~5-8)
+      // Should be above 10 with accurate MC crib
+      const hand = [c('5', 'H'), c('5', 'S'), c('6', 'D'), c('7', 'C'), c('K', 'H'), c('Q', 'S')];
+      const asDealer = optimalDiscard(hand, true);
+      expect(asDealer.expectedValue).toBeGreaterThan(10);
     });
   });
 

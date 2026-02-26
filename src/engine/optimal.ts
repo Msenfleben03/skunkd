@@ -2,7 +2,7 @@ import type { Card } from './types';
 import { cardValue, RANKS, SUITS } from './types';
 import { scoreHand } from './scoring';
 import { scorePeggingPlay } from './pegging';
-import { lookupCribEV } from './crib-ev';
+import { monteCartoCribEV } from './crib-ev';
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -82,8 +82,8 @@ export function optimalDiscard(
 
       const avgHandScore = totalHandScore / starterCount;
 
-      // Schell crib EV — direct addition/subtraction
-      const cribEV = lookupCribEV(discard[0], discard[1]);
+      // Monte Carlo crib EV — pass full 6-card hand as knownCards
+      const cribEV = monteCartoCribEV(discard, hand as Card[], 500);
       const totalValue = isDealer
         ? avgHandScore + cribEV
         : avgHandScore - cribEV;
