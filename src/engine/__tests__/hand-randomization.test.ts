@@ -177,4 +177,38 @@ describe('randomizeOpponentHand', () => {
     expect(randomized.players).toHaveLength(2);
     expect(randomized.players[1]!.hand).toHaveLength(0); // 0 cards to randomize
   });
+
+  it('should not include cards currently in the pile in the randomized opponent hand', () => {
+    // Construct a state where some cards have already been played into the pile.
+    // The pile cards must not appear in the randomized opponent hand.
+    const pileCards = [
+      card('5', 'C'), // a 5 of clubs played into the pile
+      card('J', 'H'), // a jack of hearts played into the pile
+    ];
+
+    const base = makePeggingState();
+    // Override the pegging state to include pile cards, keeping the pile-based
+    // count and sequence consistent. makePeggingState accepts Partial<GameState>
+    // so we inject a modified pegging object.
+    const peggingWithPile: PeggingState = {
+      ...base.pegging,
+      pile: pileCards,
+      sequence: pileCards,
+      count: pileCards.reduce((sum, c) => sum + (c.rank === 'J' ? 10 : Number(c.rank)), 0),
+    };
+    const gameState = makePeggingState({ pegging: peggingWithPile });
+
+    // Run randomization several times with different seeds to be thorough
+    const seeds = ['pile-seed-1', 'pile-seed-2', 'pile-seed-3'];
+    for (const s of seeds) {
+      const randomized = randomizeOpponentHand(gameState, s);
+      const opponentHand = randomized.players[1]!.hand;
+
+      // No pile card may appear in the randomized opponent hand
+      const pileKeys = new Set(pileCards.map(c => `${c.rank}-${c.suit}`));
+      for (const c of opponentHand) {
+        expect(pileKeys.has(`${c.rank}-${c.suit}`)).toBe(false);
+      }
+    }
+  });
 });

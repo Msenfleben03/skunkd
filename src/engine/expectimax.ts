@@ -214,8 +214,12 @@ function greedyRollout(
       return 0;
     }
 
+    // NOTE: depth tick is consumed by opponent-go path; minor bias acceptable for depth <= 5
     const bestOpponentCard = selectBestPeggingCard(opponentPlayable, pile);
-    const newPile = [...pile, bestOpponentCard];
+    const tentativeOpponentPile = [...pile, bestOpponentCard];
+    const opponentCount = count + cardValue(bestOpponentCard.rank);
+    // Reset pile to [] if opponent scores exactly 31; play continues with fresh count
+    const newPile = opponentCount === 31 ? [] : tentativeOpponentPile;
     // Opponent scoring does NOT contribute to our EV (it's their gain, our loss)
     const newOpponentHand = opponentHand.filter(
       c => !(c.rank === bestOpponentCard.rank && c.suit === bestOpponentCard.suit),
@@ -227,11 +231,13 @@ function greedyRollout(
 
   // Current player plays best card (greedy)
   const bestCard = selectBestPeggingCard(playable, pile);
-  const newPile = [...pile, bestCard];
-  const score = scorePeggingPlay(newPile);
+  const tentativePile = [...pile, bestCard];
+  const score = scorePeggingPlay(tentativePile);
   const newCurrentHand = currentHand.filter(
     c => !(c.rank === bestCard.rank && c.suit === bestCard.suit),
   );
+  // Reset pile to [] if current player scores exactly 31; play continues with fresh count
+  const newPile = count + cardValue(bestCard.rank) === 31 ? [] : tentativePile;
 
   // After current player plays, it's opponent's turn
   return score.total + greedyRollout(newPile, opponentHand, newCurrentHand, depth - 1);
