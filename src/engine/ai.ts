@@ -1,6 +1,8 @@
 import type { Card } from './types';
-import { cardValue } from './types';
+import { cardValue, RANKS, SUITS } from './types';
 import { scoreHand } from './scoring';
+import { scorePeggingPlay } from './pegging';
+import { lookupCribEV } from './crib-ev';
 
 /**
  * Result of AI discard evaluation.
@@ -12,33 +14,31 @@ export interface DiscardResult {
 }
 
 /**
- * Estimate the expected crib contribution for 2 discarded cards.
- *
- * Weights derived from charm-prototype heuristics:
- * - Sum-to-15: +2 (guaranteed fifteen in crib)
- * - Pair: +2 (guaranteed pair in crib)
- * - Individual 5s: +1 each (pairs with any face card for 15)
- * - Close ranks (≤2 apart): +1 (run potential with other crib cards)
+ * Board position mode based on Theory of 26.
  */
-function estimateCribValue(discard: readonly [Card, Card]): number {
-  let value = 0;
-  const v0 = cardValue(discard[0].rank);
-  const v1 = cardValue(discard[1].rank);
+export type PositionMode = 'offense' | 'defense' | 'neutral';
 
-  // Cards summing to 15 = guaranteed 2pts in crib
-  if (v0 + v1 === 15) value += 2;
+/**
+ * Determine board position mode using Theory of 26 zones.
+ *
+ * Returns the strategic mode based on score and dealer position.
+ * Zones alternate offense/defense — dealer and pone are always opposite.
+ */
+export function getPositionMode(
+  myScore: number,
+  _opponentScore: number,
+  isDealer: boolean,
+): PositionMode {
+  if (myScore <= 60) return 'neutral';
 
-  // Pair in crib = guaranteed 2pts
-  if (discard[0].rank === discard[1].rank) value += 2;
+  let dealerMode: PositionMode;
+  if (myScore <= 75) dealerMode = 'defense';
+  else if (myScore <= 86) dealerMode = 'offense';
+  else if (myScore <= 101) dealerMode = 'defense';
+  else if (myScore <= 112) dealerMode = 'offense';
+  else dealerMode = 'defense'; // 113-120
 
-  // 5s pair with any face card for 15 — valuable in crib
-  if (v0 === 5) value += 1;
-  if (v1 === 5) value += 1;
-
-  // Close ranks have run potential with other crib cards + starter
-  if (Math.abs(v0 - v1) <= 2) value += 1;
-
-  return value;
+  return isDealer ? dealerMode : (dealerMode === 'offense' ? 'defense' : 'offense');
 }
 
 /**
@@ -46,9 +46,9 @@ function estimateCribValue(discard: readonly [Card, Card]): number {
  *
  * Evaluates all C(6,2) = 15 possible discard combinations.
  * For each: scores the remaining 4 cards against all 46 possible starters
- * and computes the expected hand value. Applies a crib modifier:
- * - Dealer: adds estimated crib contribution (discards go to own crib)
- * - Pone: subtracts estimated crib contribution (discards help opponent)
+ * and computes the expected hand value. Uses Schell rank-pair crib EV:
+ * - Dealer: adds crib EV (discards go to own crib)
+ * - Pone: subtracts crib EV (discards help opponent)
  *
  * Returns the discard that maximizes total expected value.
  */
@@ -58,9 +58,6 @@ export function aiSelectDiscard(
 ): DiscardResult {
   const handIds = new Set(hand.map(c => c.id));
 
-  // Build the full deck of 52 cards for starter enumeration
-  const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
-  const SUITS = ['H', 'D', 'S', 'C'] as const;
   const fullDeck: Card[] = [];
   for (const rank of RANKS) {
     for (const suit of SUITS) {
@@ -73,32 +70,27 @@ export function aiSelectDiscard(
   let bestKeep: Card[] = hand.slice(2);
   let bestExpected = 0;
 
-  // Enumerate all C(6,2) = 15 discard combinations
   for (let i = 0; i < hand.length; i++) {
     for (let j = i + 1; j < hand.length; j++) {
       const discard: [Card, Card] = [hand[i], hand[j]];
       const keep = hand.filter((_, idx) => idx !== i && idx !== j);
-      // Average hand score over all possible starters
+
       let totalHandScore = 0;
       let starterCount = 0;
 
       for (const starter of fullDeck) {
-        // Skip cards in our 6-card hand
         if (handIds.has(starter.id)) continue;
-
         totalHandScore += scoreHand(keep, starter, false).total;
         starterCount++;
       }
 
       const avgHandScore = totalHandScore / starterCount;
 
-      // Apply crib modifier (fractional weights from charm-prototype)
-      // Dealer gets 60% of crib value — hand strength still dominates
-      // Pone subtracts 50% — moderate penalty for helping opponent's crib
-      const cribValue = estimateCribValue(discard);
+      // Schell crib EV — direct addition/subtraction
+      const cribEV = lookupCribEV(discard[0], discard[1]);
       const totalValue = isDealer
-        ? avgHandScore + cribValue * 0.6
-        : avgHandScore - cribValue * 0.5;
+        ? avgHandScore + cribEV
+        : avgHandScore - cribEV;
 
       if (totalValue > bestScore) {
         bestScore = totalValue;
@@ -122,22 +114,30 @@ export function aiSelectDiscard(
  * Priority system:
  * 1. Make 31 (2 points)
  * 2. Make 15 (2 points)
- * 3. Make a pair with last card in pile (2 points)
- * 4. Avoid leaving count at 5 or 21 (easy fifteens for opponent)
- * 5. Play lowest value card (minimize opponent's scoring chances)
+ * 3. Make a pair with last card in pile (2 points) — skipped in defense mode
+ * 4. Extend a run in the pile (3+ points) — skipped in defense mode
+ * 5. Avoid leaving count at 5, 11, or 21 (easy opponent scoring)
+ * 6. Play lowest value card
  *
+ * Optionally accepts scores for board-position-aware play (Theory of 26).
  * Returns null if no card is playable (must declare Go).
  */
 export function aiSelectPlay(
   hand: readonly Card[],
   pile: readonly Card[],
   count: number,
+  myScore?: number,
+  opponentScore?: number,
+  isDealer?: boolean,
 ): Card | null {
-  // Filter to only playable cards (value + count <= 31)
   const playable = hand.filter(card => cardValue(card.rank) + count <= 31);
 
   if (playable.length === 0) return null;
   if (playable.length === 1) return playable[0];
+
+  const mode = (myScore !== undefined && opponentScore !== undefined && isDealer !== undefined)
+    ? getPositionMode(myScore, opponentScore, isDealer)
+    : 'neutral';
 
   // Priority 1: Make 31
   const makes31 = playable.find(card => cardValue(card.rank) + count === 31);
@@ -147,28 +147,42 @@ export function aiSelectPlay(
   const makes15 = playable.find(card => cardValue(card.rank) + count === 15);
   if (makes15) return makes15;
 
-  // Priority 3: Make a pair with last card in pile
-  if (pile.length > 0) {
+  // Priority 3: Make a pair (skip in defense — opponent may have pair royal)
+  if (pile.length > 0 && mode !== 'defense') {
     const lastRank = pile[pile.length - 1].rank;
     const makesPair = playable.find(card => card.rank === lastRank);
     if (makesPair) return makesPair;
   }
 
-  // Priority 4: Avoid leaving count at 5 or 21
-  const DANGEROUS_COUNTS = new Set([5, 21]);
+  // Priority 4: Extend a run in the pile (skip in defense — opponent may extend further)
+  if (pile.length >= 2 && mode !== 'defense') {
+    let bestRunCard: Card | null = null;
+    let bestRunScore = 0;
+    for (const card of playable) {
+      const newPile = [...pile, card];
+      const score = scorePeggingPlay(newPile);
+      if (score.runs > bestRunScore) {
+        bestRunScore = score.runs;
+        bestRunCard = card;
+      }
+    }
+    if (bestRunCard) return bestRunCard;
+  }
+
+  // Priority 5: Avoid leaving count at 5, 11, or 21
+  const DANGEROUS_COUNTS = new Set([5, 11, 21]);
   const safe = playable.filter(card => {
     const newCount = cardValue(card.rank) + count;
     return !DANGEROUS_COUNTS.has(newCount);
   });
 
-  // If safe options exist, pick lowest value among them
   if (safe.length > 0) {
     return safe.reduce((best, card) =>
       cardValue(card.rank) < cardValue(best.rank) ? card : best,
     );
   }
 
-  // Priority 5: Fall back to lowest value card
+  // Priority 6: Fall back to lowest value card
   return playable.reduce((best, card) =>
     cardValue(card.rank) < cardValue(best.rank) ? card : best,
   );

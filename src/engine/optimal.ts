@@ -1,7 +1,8 @@
 import type { Card } from './types';
-import { cardValue } from './types';
+import { cardValue, RANKS, SUITS } from './types';
 import { scoreHand } from './scoring';
 import { scorePeggingPlay } from './pegging';
+import { lookupCribEV } from './crib-ev';
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -34,10 +35,7 @@ export interface OptimalPlayResult {
   readonly points: number;
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────
-
-const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
-const SUITS = ['H', 'D', 'S', 'C'] as const;
+// ─── Helpers ────────────────────────────────────────────────────────────
 
 function buildFullDeck(): Card[] {
   const deck: Card[] = [];
@@ -49,34 +47,15 @@ function buildFullDeck(): Card[] {
   return deck;
 }
 
-// ─── Crib Estimation ────────────────────────────────────────────────────
-
-/**
- * Estimate the crib contribution for 2 discarded cards.
- */
-function estimateCribValue(discard: readonly [Card, Card]): number {
-  let value = 0;
-  const v0 = cardValue(discard[0].rank);
-  const v1 = cardValue(discard[1].rank);
-
-  if (v0 + v1 === 15) value += 2;
-  if (discard[0].rank === discard[1].rank) value += 2;
-  if (v0 === 5) value += 1;
-  if (v1 === 5) value += 1;
-  if (Math.abs(v0 - v1) <= 2) value += 1;
-
-  return value;
-}
-
 // ─── Optimal Discard ────────────────────────────────────────────────────
 
 /**
  * Calculate the optimal discard for coaching.
  *
  * Evaluates all C(6,2) = 15 discard combinations, computing the expected
- * hand value for each by averaging over all 46 possible starters. Applies
- * a crib modifier for dealer/pone position. Returns the best discard with
- * reasoning and a ranked list of all 15 options.
+ * hand value for each by averaging over all 46 possible starters. Uses
+ * Schell rank-pair crib EV for dealer/pone position. Returns the best
+ * discard with reasoning and a ranked list of all 15 options.
  */
 export function optimalDiscard(
   hand: readonly Card[],
@@ -87,13 +66,11 @@ export function optimalDiscard(
 
   const options: DiscardOption[] = [];
 
-  // Enumerate all C(6,2) = 15 discard combinations
   for (let i = 0; i < hand.length; i++) {
     for (let j = i + 1; j < hand.length; j++) {
       const discard: [Card, Card] = [hand[i], hand[j]];
       const keep = hand.filter((_, idx) => idx !== i && idx !== j);
 
-      // Average hand score over all possible starters
       let totalHandScore = 0;
       let starterCount = 0;
 
@@ -105,11 +82,11 @@ export function optimalDiscard(
 
       const avgHandScore = totalHandScore / starterCount;
 
-      // Apply crib modifier
-      const cribValue = estimateCribValue(discard);
+      // Schell crib EV — direct addition/subtraction
+      const cribEV = lookupCribEV(discard[0], discard[1]);
       const totalValue = isDealer
-        ? avgHandScore + cribValue * 0.6
-        : avgHandScore - cribValue * 0.5;
+        ? avgHandScore + cribEV
+        : avgHandScore - cribEV;
 
       options.push({ discard, keep, expectedValue: totalValue });
     }
@@ -148,8 +125,13 @@ export function optimalDiscard(
 /**
  * Calculate the optimal card to play during pegging for coaching.
  *
- * Uses the same priority system as the AI but generates reasoning strings
- * explaining why each play is recommended.
+ * Priority system:
+ * 1. Make 31 (2 points)
+ * 2. Make 15 (2 points)
+ * 3. Make a pair with last card in pile (2 points)
+ * 4. Extend a run in the pile (3+ points)
+ * 5. Avoid leaving count at 5, 11, or 21 (easy opponent scoring)
+ * 6. Play lowest value card
  *
  * Returns null card with Go reasoning when no play is possible.
  */
@@ -193,7 +175,6 @@ export function optimalPeggingPlay(
     const lastRank = pile[pile.length - 1].rank;
     const makesPair = playable.find(card => card.rank === lastRank);
     if (makesPair) {
-      // Calculate actual score from pegging (pair might combine with runs/etc.)
       const newPile = [...pile, makesPair];
       const peggingScore = scorePeggingPlay(newPile);
       return {
@@ -204,8 +185,31 @@ export function optimalPeggingPlay(
     }
   }
 
-  // Priority 4: Avoid dangerous counts (5, 21)
-  const DANGEROUS_COUNTS = new Set([5, 21]);
+  // Priority 4: Extend a run in the pile
+  if (pile.length >= 2) {
+    let bestRunCard: Card | null = null;
+    let bestRunScore = 0;
+    for (const card of playable) {
+      const newPile = [...pile, card];
+      const score = scorePeggingPlay(newPile);
+      if (score.runs > bestRunScore) {
+        bestRunScore = score.runs;
+        bestRunCard = card;
+      }
+    }
+    if (bestRunCard) {
+      const newPile = [...pile, bestRunCard];
+      const peggingScore = scorePeggingPlay(newPile);
+      return {
+        card: bestRunCard,
+        reasoning: `Play ${bestRunCard.rank}${bestRunCard.suit} to extend the run for ${peggingScore.total} points.`,
+        points: peggingScore.total,
+      };
+    }
+  }
+
+  // Priority 5: Avoid dangerous counts (5, 11, 21)
+  const DANGEROUS_COUNTS = new Set([5, 11, 21]);
   const safe = playable.filter(card => {
     const newCount = cardValue(card.rank) + count;
     return !DANGEROUS_COUNTS.has(newCount);

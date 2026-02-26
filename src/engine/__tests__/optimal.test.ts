@@ -33,25 +33,20 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
     it('includes expected value averaged over all starters', () => {
       const hand = [c('A', 'H'), c('2', 'S'), c('3', 'D'), c('4', 'C'), c('7', 'H'), c('K', 'S')];
       const result = optimalDiscard(hand, false);
-      // Expected value is a meaningful number (not NaN, not zero for a hand with a run)
       expect(result.expectedValue).toBeGreaterThan(0);
       expect(Number.isFinite(result.expectedValue)).toBe(true);
     });
 
     it('reasoning mentions the scoring categories present in the kept hand', () => {
-      // 5-5-J-Q + discard: fifteens from J/Q+5, pair of 5s
       const hand = [c('5', 'H'), c('5', 'S'), c('J', 'D'), c('Q', 'C'), c('2', 'H'), c('3', 'S')];
       const result = optimalDiscard(hand, true);
-      // Reasoning should mention why this hand was chosen
       expect(result.reasoning).toBeTruthy();
     });
 
     it('evaluates all 15 possible discards', () => {
       const hand = [c('A', 'H'), c('4', 'S'), c('7', 'D'), c('10', 'C'), c('Q', 'H'), c('K', 'S')];
       const result = optimalDiscard(hand, false);
-      // allOptions shows all 15 evaluated discards sorted by value
       expect(result.allOptions).toHaveLength(15);
-      // Should be sorted descending by expected value
       for (let i = 0; i < result.allOptions.length - 1; i++) {
         expect(result.allOptions[i].expectedValue).toBeGreaterThanOrEqual(
           result.allOptions[i + 1].expectedValue,
@@ -63,7 +58,6 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       const hand = [c('5', 'H'), c('5', 'S'), c('6', 'D'), c('7', 'C'), c('K', 'H'), c('Q', 'S')];
       const asDealer = optimalDiscard(hand, true);
       const asPone = optimalDiscard(hand, false);
-      // Both must be valid
       expect(asDealer.discard).toHaveLength(2);
       expect(asPone.discard).toHaveLength(2);
     });
@@ -74,6 +68,17 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       optimalDiscard(hand, true);
       const elapsed = performance.now() - start;
       expect(elapsed).toBeLessThan(500);
+    });
+
+    it('uses Schell crib EV for total expected value', () => {
+      // The Schell table changes the EV calculation significantly
+      // Dealer discarding 5-5 to own crib adds 8.50 (not the old heuristic ~5)
+      const hand = [c('5', 'H'), c('5', 'S'), c('6', 'D'), c('7', 'C'), c('K', 'H'), c('Q', 'S')];
+      const asDealer = optimalDiscard(hand, true);
+      const asPone = optimalDiscard(hand, false);
+      // Dealer EV should be higher than pone EV (crib bonus vs penalty)
+      // For the same hand, dealer benefits from crib while pone is penalized
+      expect(asDealer.expectedValue).toBeGreaterThan(asPone.expectedValue);
     });
   });
 
@@ -100,7 +105,7 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       const hand = [c('10', 'H'), c('5', 'S'), c('A', 'D')];
       const result = optimalPeggingPlay(hand, [], 21);
       expect(result.card).not.toBeNull();
-      expect(cardValue(result.card!.rank)).toBe(10); // 10 + 21 = 31
+      expect(cardValue(result.card!.rank)).toBe(10);
       expect(result.reasoning.toLowerCase()).toContain('31');
     });
 
@@ -108,7 +113,7 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
       const hand = [c('5', 'H'), c('2', 'S'), c('A', 'D')];
       const result = optimalPeggingPlay(hand, [c('K', 'H')], 10);
       expect(result.card).not.toBeNull();
-      expect(result.card!.rank).toBe('5'); // 5 + 10 = 15
+      expect(result.card!.rank).toBe('5');
       expect(result.reasoning.toLowerCase()).toContain('15');
     });
 
@@ -122,24 +127,53 @@ describe('Optimal Play Calculator (Coaching Engine)', () => {
     });
 
     it('warns about dangerous counts in reasoning', () => {
-      // count=0, hand=[5,3]: recommends 3 and explains avoiding count=5
       const result = optimalPeggingPlay([c('5', 'H'), c('3', 'S')], [], 0);
       expect(result.card).not.toBeNull();
       expect(result.card!.rank).toBe('3');
     });
 
     it('includes score impact in result', () => {
-      // Playing 10 when count=21 → 31 → 2 points
       const hand = [c('10', 'H'), c('A', 'S')];
       const result = optimalPeggingPlay(hand, [], 21);
-      expect(result.points).toBe(2); // 31 scores 2 points
+      expect(result.points).toBe(2);
     });
 
     it('reports 0 points for a neutral play', () => {
-      // count=10, play 3 → count=13 → no scoring event
       const result = optimalPeggingPlay([c('3', 'H')], [c('K', 'S')], 10);
       expect(result.card).not.toBeNull();
       expect(result.points).toBe(0);
+    });
+
+    // ─── Count 11 avoidance ───────────────────────────────────────────
+    it('avoids leaving count at 11 in recommendation', () => {
+      // count=1: 10+1=11 (opponent plays face for 15-2), 3+1=4 (safe)
+      const result = optimalPeggingPlay([c('10', 'H'), c('3', 'S')], [], 1);
+      expect(result.card).not.toBeNull();
+      expect(result.card!.rank).toBe('3');
+    });
+
+    // ─── Run extension ────────────────────────────────────────────────
+    it('recommends extending a run and explains why', () => {
+      // pile=[7,8], count=15, hand=[6, 2, A]
+      // 6 extends to 6-7-8 (run of 3 = 3 pts)
+      const pile = [c('7', 'H'), c('8', 'S')];
+      const hand = [c('6', 'D'), c('2', 'C'), c('A', 'H')];
+      const result = optimalPeggingPlay(hand, pile, 15);
+      expect(result.card).not.toBeNull();
+      expect(result.card!.rank).toBe('6');
+      expect(result.reasoning.toLowerCase()).toContain('run');
+      expect(result.points).toBeGreaterThanOrEqual(3);
+    });
+
+    it('recommends extending a run at the high end', () => {
+      // pile=[3,4], count=7, hand=[5, K, A]
+      // 5 extends 3-4 to 3-4-5 (run of 3)
+      const pile = [c('3', 'H'), c('4', 'S')];
+      const hand = [c('5', 'D'), c('K', 'C'), c('A', 'H')];
+      const result = optimalPeggingPlay(hand, pile, 7);
+      expect(result.card).not.toBeNull();
+      expect(result.card!.rank).toBe('5');
+      expect(result.points).toBeGreaterThanOrEqual(3);
     });
   });
 });
