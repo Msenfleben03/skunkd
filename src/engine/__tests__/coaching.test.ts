@@ -146,6 +146,10 @@ describe('analyzeDecision — pegging play', () => {
     };
     // Should not throw — Go is correct when no card is playable
     expect(() => analyzeDecision(snapshot)).not.toThrow();
+    const annotation = analyzeDecision(snapshot);
+    expect(annotation.evActual).toBe(0);
+    expect(annotation.evOptimal).toBe(0);
+    expect(annotation.severity).toBe('excellent');
   });
 
   it('uses expectimax EV for pegging play analysis — EVL > 0 for clearly suboptimal play', () => {
@@ -216,6 +220,24 @@ describe('analyzeDecision — pegging play', () => {
     // evOptimal should be at least 2 (the 31 points)
     expect(annotation.evOptimal).toBeGreaterThanOrEqual(2);
     // severity: making 31 is the best play → excellent
+    expect(annotation.severity).toBe('excellent');
+  });
+
+  it('should return evl=0 when only one card is playable', () => {
+    // count=25, hand=[6H, K], only 6H is playable (6+25=31), K would bust (10+25=35>31).
+    // With only one legal play, evActual must equal evOptimal → evl=0, severity=excellent.
+    const snapshot: DecisionSnapshot = {
+      type: 'pegging_play',
+      hand: [c('6','H'), c('K','S')],
+      playerChoice: [c('6','H')],  // only playable card
+      isDealer: false,
+      pile: [c('10','C'), c('9','D'), c('6','S')], // 10+9+6=25
+      count: 25,
+      handIndex: 0,
+    };
+    const annotation = analyzeDecision(snapshot);
+    // When there's only one playable card, evl must be 0 — no alternative exists
+    expect(annotation.evl).toBe(0);
     expect(annotation.severity).toBe('excellent');
   });
 });

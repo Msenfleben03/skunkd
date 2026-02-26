@@ -17,7 +17,7 @@ export interface CoachingAnnotation {
   readonly evl: number;          // max(0, evOptimal - evActual)
   readonly severity: Severity;
   readonly reasoning: string;
-  readonly points?: number;      // pegging only — immediate points scored
+  readonly points?: number;      // pegging only — Expectimax EV for the played card (expected cumulative points incl. look-ahead)
 }
 
 export interface HandCoachingSummary {
@@ -172,7 +172,7 @@ function buildSynthStateForCandidate(
   };
 
   const pegging: PeggingState = {
-    count: pile.reduce((sum, c) => sum + cardValue(c.rank), 0),
+    count: snapshot.count ?? pile.reduce((sum, c) => sum + cardValue(c.rank), 0),
     pile,            // used by randomizeOpponentHand to exclude known cards
     sequence: pile,  // used by greedyRollout as the current scoring sequence
     currentPlayerIndex,
@@ -218,7 +218,7 @@ function evalCandidateWithExpectimax(
   }
 
   const synthState = buildSynthStateForCandidate(snapshot, candidateCard);
-  const myScore = 0;
+  const myScore = 0;        // myScore/opponentScore reserved for future board-position weighting
   const opponentScore = 0;
   return expectimaxPeggingPlay(synthState, myScore, opponentScore, 20, 3);
 }
