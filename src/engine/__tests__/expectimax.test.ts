@@ -17,7 +17,7 @@ describe('expectimaxPeggingPlay', () => {
     expect(ev1).toBe(ev2);
   });
 
-  it('should vary between different seeds', () => {
+  it('should run without error for different seeds', () => {
     const gameState = createGame(2);
     // With a full game (pre-pegging), pile is empty, so the EV is truly based on determinizations
     // We just verify it runs without error for different seeds
