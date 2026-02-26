@@ -29,6 +29,7 @@ export interface UseGameReturn {
 
   // Actions
   newGame: () => void;
+  returnToMenu: () => void;
   toggleCardSelect: (cardId: string) => void;
   confirmDiscard: () => void;
   playSelectedCard: () => void;
@@ -79,11 +80,14 @@ function createStartState(): GameState {
 
 // Our reducer wraps the engine's gameReducer, handling NEW_GAME specially
 // so we can start from GAME_START stub.
-function reducer(state: GameState, action: GameAction): GameState {
+function reducer(state: GameState, action: GameAction | { type: 'RETURN_TO_MENU' }): GameState {
+  if (action.type === 'RETURN_TO_MENU') {
+    return createStartState();
+  }
   if (action.type === 'NEW_GAME') {
     return createGame(action.playerCount);
   }
-  return gameReducer(state, action);
+  return gameReducer(state, action as GameAction);
 }
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
@@ -106,7 +110,7 @@ export function useGame(): UseGameReturn {
 
   useEffect(() => {
     clearTimer();
-    const { phase, pegging, players, dealerIndex, starter, winner } = gameState;
+    const { phase, pegging, players, dealerIndex, winner } = gameState;
 
     // DEALING → auto-deal after short animation window
     if (phase === 'DEALING') {
@@ -245,6 +249,13 @@ export function useGame(): UseGameReturn {
     setLastPeggingScore(null);
   }, []);
 
+  const returnToMenu = useCallback(() => {
+    dispatch({ type: 'RETURN_TO_MENU' });
+    setSelectedCardIds(new Set());
+    setShowScoring(null);
+    setLastPeggingScore(null);
+  }, []);
+
   const toggleCardSelect = useCallback(
     (cardId: string) => {
       const { phase } = gameState;
@@ -303,6 +314,7 @@ export function useGame(): UseGameReturn {
     lastPeggingScore,
     humanPlayerIndex: HUMAN_PLAYER,
     newGame,
+    returnToMenu,
     toggleCardSelect,
     confirmDiscard,
     playSelectedCard,

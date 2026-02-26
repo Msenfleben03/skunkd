@@ -34,7 +34,6 @@ describe('Deck', () => {
 
   it('shuffle does not mutate the original array', () => {
     const deck = createDeck();
-    const original = [...deck];
     shuffle(deck);
     // deck should still be the same reference but shuffle returns new array
     expect(deck).toHaveLength(52);

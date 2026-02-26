@@ -17,7 +17,7 @@ const DEFAULT_SUGGESTIONS = [
   "Counting on your fingers?",
 ];
 
-export function SuggestionBar({ gameContext, draft, onSelect, className }: SuggestionBarProps) {
+export function SuggestionBar({ gameContext, onSelect, className }: SuggestionBarProps) {
   const [suggestions, setSuggestions] = useState<string[]>(DEFAULT_SUGGESTIONS);
   const [loading, setLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);

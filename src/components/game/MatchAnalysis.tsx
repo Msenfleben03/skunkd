@@ -1,5 +1,5 @@
 // Task 6.4: End-of-game match analysis with Cribbage Grade
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { callLLM } from '@/lib/gemini';
 import { cn } from '@/lib/utils';
 
@@ -50,7 +50,7 @@ export function MatchAnalysis({
       });
       setAnalysis(text);
     } catch (e) {
-      setError('STINKY lost the scoreboard. Try again.');
+      setError('Sir John Skunkling lost the scoreboard. Try again.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export function MatchAnalysis({
           {loading && (
             <div className="flex items-center justify-center gap-2 py-4">
               <div className="w-3 h-3 rounded-full bg-gold/60 animate-pulse" />
-              <span className="text-cream/40 text-xs italic">STINKY is judging your game…</span>
+              <span className="text-cream/40 text-xs italic">Sir John Skunkling is judging your game…</span>
             </div>
           )}
 
@@ -114,7 +114,7 @@ export function MatchAnalysis({
               )}
 
               <div>
-                <p className="text-[10px] text-gold/60 uppercase tracking-widest mb-1">STINKY'S ANALYSIS</p>
+                <p className="text-[10px] text-gold/60 uppercase tracking-widest mb-1">Sir John Skunkling'S ANALYSIS</p>
                 <p className="text-cream/70 text-xs leading-relaxed">{analysis}</p>
               </div>
             </div>

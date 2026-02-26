@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import { isRed, type Card } from '@/engine/types';
 import { cn } from '@/lib/utils';
+import { useCardSize } from '@/hooks/useCardSize';
 
 // Unicode suit symbols
 const SUIT_SYMBOLS: Record<string, string> = {
@@ -36,20 +37,26 @@ export function GameCard({
   style,
   mini = false,
 }: GameCardProps) {
-  const sizeClass = mini
-    ? 'w-8 h-[2.8rem] rounded-[3px]'
-    : 'w-14 h-[4.9rem] rounded-[5px]';
+  const sz = useCardSize();
+  const d = mini ? sz.mini : sz;
+
+  const cardStyle: CSSProperties = {
+    width: d.w,
+    height: d.h,
+    borderRadius: d.r,
+    flexShrink: 0,
+  };
 
   // --- Face-down / back of card ---
   if (faceDown || !card) {
     return (
       <div
-        className={cn('relative flex-shrink-0', sizeClass, className)}
+        className={cn('relative', className)}
         style={{
+          ...cardStyle,
           backgroundColor: '#722F37',
           backgroundImage: CARD_BACK_PATTERN,
-          boxShadow:
-            '0 2px 8px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.06)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.55), inset 0 0 0 2px rgba(255,255,255,0.06)',
           cursor: onClick ? 'pointer' : 'default',
           ...style,
         }}
@@ -60,19 +67,13 @@ export function GameCard({
         <div className="absolute inset-0 flex items-center justify-center">
           <span
             className="font-bold tracking-widest select-none text-white/20 rotate-90"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: mini ? 6 : 9,
-              letterSpacing: '0.18em',
-            }}
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: d.watermarkFont, letterSpacing: '0.18em' }}
           >
             SKUNK'D
           </span>
         </div>
         {/* Inner border for premium card feel */}
-        <div
-          className="absolute inset-[3px] rounded-[3px] border border-white/10"
-        />
+        <div className="absolute inset-[3px] rounded-[3px] border border-white/10" />
       </div>
     );
   }
@@ -88,66 +89,48 @@ export function GameCard({
   return (
     <div
       className={cn(
-        'relative flex-shrink-0 select-none bg-white',
-        sizeClass,
+        'relative select-none bg-white',
         selected && 'ring-2 ring-gold ring-offset-1 ring-offset-felt',
         dimmed && 'opacity-40 grayscale pointer-events-none',
         'transition-all duration-200',
         className,
       )}
       style={{
+        ...cardStyle,
         boxShadow: selected ? selectedShadow : defaultShadow,
-        transform: selected
-          ? `translateY(-12px)${style?.transform ? ` ${style.transform}` : ''}`
-          : style?.transform,
         cursor: onClick ? 'pointer' : 'default',
         border: '1px solid #e5e7eb',
         ...style,
-        // override transform above so we set it correctly
-        ...(selected ? { transform: `translateY(-12px)` } : {}),
+        ...(selected ? { transform: 'translateY(-12px)' } : {}),
       }}
       onClick={onClick}
       role={onClick ? 'button' : undefined}
       aria-label={`${card.rank} of ${card.suit}`}
     >
-      {/* Top-left corner */}
+      {/* Top-left guard */}
       <div
         className="absolute leading-none"
-        style={{
-          top: mini ? 2 : 3,
-          left: mini ? 3 : 4,
-          color: textColor,
-          fontFamily: "'Playfair Display', serif",
-        }}
+        style={{ top: d.guardTop, left: d.guardLeft, color: textColor, fontFamily: "'Playfair Display', serif" }}
       >
-        <div style={{ fontSize: mini ? 7 : 11, fontWeight: 700 }}>{card.rank}</div>
-        <div style={{ fontSize: mini ? 6 : 9, marginTop: -1 }}>{suitSym}</div>
+        <div style={{ fontSize: d.rankFont, fontWeight: 700 }}>{card.rank}</div>
+        <div style={{ fontSize: d.suitFont, marginTop: -1 }}>{suitSym}</div>
       </div>
 
       {/* Center suit symbol */}
       <div
         className="absolute inset-0 flex items-center justify-center"
-        style={{
-          color: textColor,
-          fontSize: mini ? 16 : 26,
-          lineHeight: 1,
-        }}
+        style={{ color: textColor, fontSize: d.centerFont, lineHeight: 1 }}
       >
         {suitSym}
       </div>
 
-      {/* Bottom-right corner (rotated 180°) */}
+      {/* Bottom-right guard (rotated 180°) */}
       <div
         className="absolute leading-none rotate-180"
-        style={{
-          bottom: mini ? 2 : 3,
-          right: mini ? 3 : 4,
-          color: textColor,
-          fontFamily: "'Playfair Display', serif",
-        }}
+        style={{ bottom: d.guardTop, right: d.guardLeft, color: textColor, fontFamily: "'Playfair Display', serif" }}
       >
-        <div style={{ fontSize: mini ? 7 : 11, fontWeight: 700 }}>{card.rank}</div>
-        <div style={{ fontSize: mini ? 6 : 9, marginTop: -1 }}>{suitSym}</div>
+        <div style={{ fontSize: d.rankFont, fontWeight: 700 }}>{card.rank}</div>
+        <div style={{ fontSize: d.suitFont, marginTop: -1 }}>{suitSym}</div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import type { Card } from '@/engine/types';
 import { useGame } from '@/hooks/useGame';
 import { useAuthContext } from '@/context/AuthContext';
 import { createGame } from '@/lib/gameApi';
@@ -52,6 +53,7 @@ export function GameScreen({ className }: { className?: string }) {
     lastPeggingScore,
     humanPlayerIndex,
     newGame,
+    returnToMenu,
     toggleCardSelect,
     confirmDiscard,
     playSelectedCard,
@@ -62,7 +64,6 @@ export function GameScreen({ className }: { className?: string }) {
 
   const auth = useAuthContext();
   const navigate = useNavigate();
-  const [showBoard, setShowBoard] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [activeOnlineGameId, setActiveOnlineGameId] = useState<string | null>(null);
@@ -349,19 +350,6 @@ export function GameScreen({ className }: { className?: string }) {
               Play Online
             </button>
 
-            {/* How to Play */}
-            <button
-              className={cn(
-                'w-full rounded-xl py-3 px-8 font-semibold text-sm',
-                'text-cream/40 hover:text-cream/60 transition-colors',
-              )}
-              onClick={() => {
-                /* TODO: Phase 3.3 — how to play modal */
-              }}
-            >
-              How to Play
-            </button>
-
             {/* Stats */}
             <button
               className={cn(
@@ -407,7 +395,7 @@ export function GameScreen({ className }: { className?: string }) {
     return (
       <div
         className="h-screen flex flex-col items-center justify-center overflow-y-auto py-6 px-4 gap-4"
-        style={{ background: 'radial-gradient(ellipse at 50% 40%, #1a3d2b 0%, #0D0D1A 70%)' }}
+        style={{ background: '#0D0D1A' }}
       >
         <HandSummary
           handNumber={handNumber}
@@ -435,7 +423,7 @@ export function GameScreen({ className }: { className?: string }) {
         'h-screen flex flex-col overflow-hidden relative',
         className,
       )}
-      style={{ background: 'radial-gradient(ellipse at 50% 30%, #1a3d2b 0%, #0D0D1A 65%)' }}
+      style={{ background: '#0D0D1A' }}
       data-testid="game-screen"
     >
       {/* Score header */}
@@ -444,23 +432,7 @@ export function GameScreen({ className }: { className?: string }) {
         opponentScore={opponent.score}
         dealerIndex={dealerIndex}
         humanPlayerIndex={humanPlayerIndex}
-        onToggleBoard={() => setShowBoard(b => !b)}
-        showBoard={showBoard}
       />
-
-      {/* Collapsible cribbage board */}
-      {showBoard && (
-        <div
-          className="overflow-y-auto border-b border-white/10"
-          style={{ maxHeight: '55vh', backgroundColor: 'rgba(13,13,26,0.6)' }}
-        >
-          <CribbageBoard
-            player={{ front: player.pegFront, back: player.pegBack }}
-            opponent={{ front: opponent.pegFront, back: opponent.pegBack }}
-            className="py-2"
-          />
-        </div>
-      )}
 
       {/* Main area — expands to fill available space */}
       <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -505,7 +477,7 @@ export function GameScreen({ className }: { className?: string }) {
         {showHand && (
           <div className="flex justify-center pb-2 px-4 flex-shrink-0">
             <PlayerHand
-              cards={handToDisplay}
+              cards={handToDisplay as Card[]}
               selectedIds={selectedCardIds}
               onCardClick={
                 handInteractive
@@ -531,6 +503,14 @@ export function GameScreen({ className }: { className?: string }) {
         onAdvance={advanceShow}
         onNextHand={nextHand}
         onNewGame={newGame}
+      />
+
+      {/* Always-visible horizontal cribbage board strip */}
+      <CribbageBoard
+        player={{ front: player.pegFront, back: player.pegBack }}
+        opponent={{ front: opponent.pegFront, back: opponent.pegBack }}
+        horizontal
+        className="flex-shrink-0 border-t border-gold/15 py-1"
       />
 
       {/* Chat toggle button — online games only */}
@@ -564,6 +544,7 @@ export function GameScreen({ className }: { className?: string }) {
           playerScore={player.score}
           opponentScore={opponent.score}
           onPlayAgain={newGame}
+          onMainMenu={returnToMenu}
           handsPlayed={handNumber}
         />
       )}

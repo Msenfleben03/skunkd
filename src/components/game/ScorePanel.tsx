@@ -7,9 +7,6 @@ export interface ScorePanelProps {
   dealerIndex: number;
   /** Index of the human player (almost always 0) */
   humanPlayerIndex?: number;
-  /** Toggle board visibility */
-  onToggleBoard?: () => void;
-  showBoard?: boolean;
   className?: string;
 }
 
@@ -27,8 +24,6 @@ export function ScorePanel({
   opponentScore,
   dealerIndex,
   humanPlayerIndex = 0,
-  onToggleBoard,
-  showBoard = false,
   className,
 }: ScorePanelProps) {
   const humanIsDealer = dealerIndex === humanPlayerIndex;
@@ -40,11 +35,8 @@ export function ScorePanel({
         'flex items-center justify-between px-4 py-2.5',
         'bg-walnut/90 backdrop-blur-sm border-b border-white/10',
         'relative z-20',
-        onToggleBoard && 'cursor-pointer active:bg-walnut',
         className,
       )}
-      onClick={onToggleBoard}
-      role={onToggleBoard ? 'button' : undefined}
       aria-label="Score display"
       data-testid="score-panel"
     >
@@ -80,13 +72,6 @@ export function ScorePanel({
           </span>
         )}
       </div>
-
-      {/* Centre: board toggle */}
-      {onToggleBoard && (
-        <span className="text-[10px] text-cream/40 select-none">
-          {showBoard ? '▲' : '▼'} Board
-        </span>
-      )}
 
       {/* Right: opponent */}
       <div className="flex items-center gap-2" aria-label={`Opponent score: ${opponentScore}`}>

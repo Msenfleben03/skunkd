@@ -15,14 +15,35 @@ export interface PlayAreaProps {
   className?: string;
 }
 
-const PHASE_LABELS: Partial<Record<Phase, string>> = {
-  DISCARD_TO_CRIB: 'Salt the crib — pick 2',
-  CUT_STARTER: 'Cut for starter',
-  SHOW_NONDEALER: 'Counting hands…',
-  SHOW_DEALER: 'Counting hands…',
-  SHOW_CRIB: 'Counting crib…',
-  HAND_COMPLETE: 'Hand complete',
-};
+function buildStatusText(
+  phase: Phase,
+  isHumanTurn: boolean,
+): string | null {
+  switch (phase) {
+    case 'DISCARD_TO_CRIB': return 'Pick 2 cards to salt the crib';
+    case 'CUT_STARTER': return 'Cut for the starter card';
+    case 'PEGGING': return isHumanTurn ? 'Your turn — tap a card to play' : 'Opponent thinking…';
+    case 'SHOW_NONDEALER': return 'Counting your hand…';
+    case 'SHOW_DEALER': return 'Counting opponent hand…';
+    case 'SHOW_CRIB': return 'Counting the crib…';
+    case 'HAND_COMPLETE': return 'Hand complete';
+    default: return null;
+  }
+}
+
+/** Mascot action shot based on current game phase */
+function getMascotImage(phase: Phase, isHumanTurn: boolean): string | null {
+  switch (phase) {
+    case 'DISCARD_TO_CRIB': return '/mascot-action-03.png';
+    case 'CUT_STARTER': return '/mascot-action-04.png';
+    case 'PEGGING': return isHumanTurn ? '/mascot-action-01.png' : '/mascot-action-03.png';
+    case 'SHOW_NONDEALER':
+    case 'SHOW_DEALER':
+    case 'SHOW_CRIB': return '/mascot-action-02.png';
+    case 'HAND_COMPLETE': return '/mascot-action-02.png';
+    default: return null;
+  }
+}
 
 /** Center-table area: count, pegging pile, starter, crib */
 export function PlayArea({
@@ -39,17 +60,13 @@ export function PlayArea({
   const showCribFaceUp = phase === 'SHOW_CRIB';
 
   const isHumanTurn = isPegging && pegging.currentPlayerIndex === humanPlayerIndex;
-  const turnLabel = isPegging
-    ? isHumanTurn
-      ? 'Your turn'
-      : 'Opponent thinking…'
-    : null;
 
   // Count colour: danger zones (5, 21, 26) in amber
   const isDanger = isPegging && (pegging.count === 5 || pegging.count === 21 || pegging.count === 26);
   const isMax = isPegging && pegging.count === 31;
 
-  const phaseLabel = PHASE_LABELS[phase];
+  const statusText = message ?? buildStatusText(phase, isHumanTurn);
+  const mascotSrc = getMascotImage(phase, isHumanTurn);
 
   return (
     <div
@@ -58,17 +75,26 @@ export function PlayArea({
         className,
       )}
     >
-      {/* Phase / message toast */}
-      {(message || phaseLabel) && (
+      {/* Mascot action shot */}
+      {mascotSrc && (
+        <img
+          src={mascotSrc}
+          alt=""
+          aria-hidden="true"
+          className="w-[40vw] max-w-[200px] md:max-w-[240px] object-contain opacity-70 pointer-events-none"
+        />
+      )}
+
+      {/* Persistent status bar */}
+      {statusText && (
         <div
           className={cn(
-            'px-3 py-1 rounded-full text-xs font-medium tracking-wide',
-            'bg-walnut/70 text-cream/90 border border-gold/20',
-            'transition-all duration-300',
+            'px-4 py-1.5 rounded-lg text-xs font-medium tracking-wide',
+            'bg-walnut/50 text-cream/85 border border-gold/20',
           )}
           aria-live="polite"
         >
-          {message ?? phaseLabel}
+          {statusText}
         </div>
       )}
 
@@ -79,7 +105,7 @@ export function PlayArea({
           <div
             className={cn(
               'font-display font-black tabular-nums leading-none transition-colors duration-300',
-              'text-6xl',
+              'text-7xl md:text-9xl',
               isDanger && 'text-amber-400',
               isMax && 'text-skunk-green',
               !isDanger && !isMax && 'text-gold',
@@ -88,16 +114,13 @@ export function PlayArea({
           >
             {pegging.count}
           </div>
-          {turnLabel && (
-            <p className="text-[10px] text-cream/50 mt-1">{turnLabel}</p>
-          )}
         </div>
       )}
 
       {/* Pegging sequence — cards played in current round */}
       {isPegging && pegging.sequence.length > 0 && (
         <div
-          className="flex gap-1 flex-wrap justify-center max-w-[280px]"
+          className="flex gap-1 flex-wrap justify-center max-w-[320px]"
           aria-label="Pegging sequence"
         >
           {[...pegging.sequence].map((card, i) => (
@@ -148,7 +171,7 @@ export function PlayArea({
                 Starter TBD
               </span>
               {/* placeholder card silhouette */}
-              <div className="w-14 h-[4.9rem] rounded-[5px] border border-dashed border-white/10" />
+              <div className="w-16 md:w-[5.625rem] lg:w-[6.75rem] h-[6.3rem] md:h-[7.875rem] lg:h-[9.4rem] rounded-md border border-dashed border-white/10" />
             </div>
           )
         )}

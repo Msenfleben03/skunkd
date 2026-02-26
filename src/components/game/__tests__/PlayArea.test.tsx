@@ -48,7 +48,7 @@ describe('PlayArea', () => {
     expect(screen.getByText('15')).toBeInTheDocument();
   });
 
-  it('shows "Your turn" when it is the human player turn', () => {
+  it('shows "Your turn" in status bar when it is the human player turn', () => {
     render(
       <PlayArea
         phase="PEGGING"
@@ -58,10 +58,10 @@ describe('PlayArea', () => {
         humanPlayerIndex={0}
       />
     );
-    expect(screen.getByText('Your turn')).toBeInTheDocument();
+    expect(screen.getByText(/Your turn/)).toBeInTheDocument();
   });
 
-  it('shows "Opponent thinking…" when it is not human turn', () => {
+  it('shows "Opponent thinking…" in status bar when it is not human turn', () => {
     render(
       <PlayArea
         phase="PEGGING"
@@ -71,7 +71,7 @@ describe('PlayArea', () => {
         humanPlayerIndex={0}
       />
     );
-    expect(screen.getByText('Opponent thinking…')).toBeInTheDocument();
+    expect(screen.getByText(/Opponent thinking/)).toBeInTheDocument();
   });
 
   it('renders sequence cards during pegging', () => {

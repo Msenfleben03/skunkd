@@ -13,6 +13,8 @@ export interface CribbageBoardProps {
   player: PegPosition;
   /** Opponent peg positions */
   opponent: PegPosition;
+  /** Render as a horizontal strip (for bottom-docked layout) */
+  horizontal?: boolean;
   className?: string;
 }
 
@@ -97,11 +99,11 @@ function Track({
         strokeWidth={18}
         fill="none"
         strokeLinecap="round"
-        opacity={0.22}
+        opacity={0.15}
       />
       {/* Individual holes */}
       {holes.map((h, i) => (
-        <circle key={i} cx={h.x} cy={h.y} r={2} fill="url(#holeFill)" />
+        <circle key={i} cx={h.x} cy={h.y} r={2.5} fill="url(#holeFill)" />
       ))}
       {/* Group separator lines every 5 holes */}
       {[5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(n => {
@@ -200,10 +202,182 @@ function Pegs({
 const SCORE_MARKERS_R = [15, 30, 45];
 const SCORE_MARKERS_L = [75, 90, 105];
 
-export function CribbageBoard({ player, opponent, className }: CribbageBoardProps) {
+export function CribbageBoard({ player, opponent, horizontal = false, className }: CribbageBoardProps) {
   // Skunk and double-skunk line Y positions
   const skunkY = playerHoles[90]?.y ?? 0;   // hole 91
   const dblSkunkY = playerHoles[60]?.y ?? 0; // hole 61
+
+  // SVG content shared between vertical and horizontal layouts
+  const svgContent = (
+    <>
+      <defs>
+        {/* Dark walnut board gradient — matches SKUNK'D dark theme */}
+        <linearGradient id="woodBg" x1="0" y1="0" x2="0.2" y2="1">
+          <stop offset="0%" stopColor="#1e1210" />
+          <stop offset="30%" stopColor="#160c0a" />
+          <stop offset="70%" stopColor="#1a0e0c" />
+          <stop offset="100%" stopColor="#221614" />
+        </linearGradient>
+
+        {/* Hole fill — subtle depression visible on dark board */}
+        <radialGradient id="holeFill">
+          <stop offset="0%" stopColor="#3a2518" />
+          <stop offset="100%" stopColor="#2a1810" stopOpacity={0.8} />
+        </radialGradient>
+
+        {/* Player peg: warm gold */}
+        <radialGradient id="goldPeg">
+          <stop offset="0%" stopColor="#ffe898" />
+          <stop offset="60%" stopColor="#d4a843" />
+          <stop offset="100%" stopColor="#a07820" />
+        </radialGradient>
+
+        {/* Opponent peg: neon skunk-green */}
+        <radialGradient id="greenPeg">
+          <stop offset="0%" stopColor="#90ff60" />
+          <stop offset="60%" stopColor="#39FF14" />
+          <stop offset="100%" stopColor="#1fa80a" />
+        </radialGradient>
+      </defs>
+
+      {/* ── Board body ─────────────────────────────────────────────── */}
+      <rect
+        x="4" y="4" width={VIEWBOX_W - 8} height={VIEWBOX_H - 8}
+        rx="14"
+        fill="url(#woodBg)"
+        stroke="#d4a843"
+        strokeWidth="1.5"
+        strokeOpacity={0.3}
+      />
+
+      {/* Wood grain lines — subtle on dark background */}
+      {Array.from({ length: 18 }, (_, i) => (
+        <line
+          key={i}
+          x1="10" y1={28 + i * 30} x2={VIEWBOX_W - 10} y2={31 + i * 30}
+          stroke="#3a2215"
+          strokeWidth="0.5"
+          opacity="0.3"
+        />
+      ))}
+
+      {/* ── Tracks — boosted opacity for dark background ──────────── */}
+      <Track holes={oppHoles} rx={OPP_RX} lx={OPP_LX} color="#39FF14" />
+      <Track holes={playerHoles} rx={PLAYER_RX} lx={PLAYER_LX} color="#d4a843" />
+
+      {/* ── Skunk lines ────────────────────────────────────────────── */}
+      <line
+        x1="16" y1={skunkY}
+        x2={VIEWBOX_W - 16} y2={skunkY}
+        stroke="#d4a843" strokeWidth="1"
+        strokeDasharray="4,3" opacity="0.55"
+      />
+      <text
+        x={VIEWBOX_W - 13} y={skunkY + 3}
+        fill="#d4a843" fontSize="7"
+        textAnchor="middle" opacity="0.7"
+        fontWeight="bold"
+      >
+        S
+      </text>
+
+      <line
+        x1="16" y1={dblSkunkY}
+        x2={VIEWBOX_W - 16} y2={dblSkunkY}
+        stroke="#d4a843" strokeWidth="0.8"
+        strokeDasharray="3,4" opacity="0.4"
+      />
+      <text
+        x={VIEWBOX_W - 13} y={dblSkunkY + 3}
+        fill="#d4a843" fontSize="6"
+        textAnchor="middle" opacity="0.55"
+        fontWeight="bold"
+      >
+        2S
+      </text>
+
+      {/* ── Score number markers ────────────────────────────────────── */}
+      {SCORE_MARKERS_R.map(n => (
+        <text
+          key={n}
+          x={OPP_RX + 15}
+          y={(playerHoles[n - 1]?.y ?? 0) + 3}
+          fill="#d4a843" fontSize="6"
+          opacity="0.45"
+          fontFamily="DM Sans, sans-serif"
+        >
+          {n}
+        </text>
+      ))}
+      {SCORE_MARKERS_L.map(n => (
+        <text
+          key={n}
+          x={OPP_LX - 14}
+          y={(playerHoles[n - 1]?.y ?? 0) + 3}
+          fill="#d4a843" fontSize="6"
+          textAnchor="end" opacity="0.45"
+          fontFamily="DM Sans, sans-serif"
+        >
+          {n}
+        </text>
+      ))}
+
+      {/* START / 60 / WIN labels */}
+      <text
+        x={VIEWBOX_W / 2} y={VIEWBOX_H - 8}
+        fill="#d4a843" fontSize="7"
+        textAnchor="middle" opacity="0.45"
+        fontFamily="DM Sans, sans-serif"
+      >
+        START
+      </text>
+      <text
+        x={VIEWBOX_W / 2} y={TOP_Y - 10}
+        fill="#d4a843" fontSize="7"
+        textAnchor="middle" opacity="0.45"
+        fontFamily="DM Sans, sans-serif"
+      >
+        60
+      </text>
+      <text
+        x={PLAYER_LX}
+        y={(playerHoles[120]?.y ?? BOTTOM_Y) + 13}
+        fill="#d4a843" fontSize="6"
+        textAnchor="middle" opacity="0.55"
+        fontFamily="DM Sans, sans-serif"
+      >
+        WIN
+      </text>
+
+      {/* ── Pegs (with CSS-transition animation) ───────────────────── */}
+      <Pegs holes={oppHoles} pos={opponent} gradId="greenPeg" />
+      <Pegs holes={playerHoles} pos={player} gradId="goldPeg" />
+    </>
+  );
+
+  if (horizontal) {
+    return (
+      <div
+        className={cn('w-full flex justify-center relative', className)}
+        aria-label="Cribbage board"
+        data-testid="cribbage-board"
+      >
+        <svg
+          viewBox={`0 0 ${VIEWBOX_H} ${VIEWBOX_W}`}
+          className="w-full drop-shadow-md"
+          style={{ aspectRatio: `${VIEWBOX_H} / ${VIEWBOX_W}`, maxHeight: 260 }}
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label={`Cribbage board — You: ${player.front}, Opponent: ${opponent.front}`}
+        >
+          {/* Rotate the vertical board content 90° CCW to lay it horizontal */}
+          <g transform={`translate(0, ${VIEWBOX_W}) rotate(-90)`}>
+            {svgContent}
+          </g>
+        </svg>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -217,163 +391,7 @@ export function CribbageBoard({ player, opponent, className }: CribbageBoardProp
         role="img"
         aria-label={`Cribbage board — You: ${player.front}, Opponent: ${opponent.front}`}
       >
-        <defs>
-          {/* Wood grain gradient */}
-          <linearGradient id="woodBg" x1="0" y1="0" x2="0.2" y2="1">
-            <stop offset="0%" stopColor="#c89240" />
-            <stop offset="30%" stopColor="#a87228" />
-            <stop offset="70%" stopColor="#9a6420" />
-            <stop offset="100%" stopColor="#c89240" />
-          </linearGradient>
-
-          {/* Hole fill — dark depression look */}
-          <radialGradient id="holeFill">
-            <stop offset="0%" stopColor="#120a04" />
-            <stop offset="100%" stopColor="#3a1e0c" stopOpacity={0.6} />
-          </radialGradient>
-
-          {/* Player peg: warm gold */}
-          <radialGradient id="goldPeg">
-            <stop offset="0%" stopColor="#ffe898" />
-            <stop offset="60%" stopColor="#d4a843" />
-            <stop offset="100%" stopColor="#a07820" />
-          </radialGradient>
-
-          {/* Opponent peg: neon skunk-green */}
-          <radialGradient id="greenPeg">
-            <stop offset="0%" stopColor="#90ff60" />
-            <stop offset="60%" stopColor="#39FF14" />
-            <stop offset="100%" stopColor="#1fa80a" />
-          </radialGradient>
-        </defs>
-
-        {/* ── Board body ─────────────────────────────────────────────── */}
-        <rect
-          x="4" y="4" width={VIEWBOX_W - 8} height={VIEWBOX_H - 8}
-          rx="14"
-          fill="url(#woodBg)"
-          stroke="#7a5218"
-          strokeWidth="2.5"
-        />
-
-        {/* Wood grain lines */}
-        {Array.from({ length: 18 }, (_, i) => (
-          <line
-            key={i}
-            x1="10" y1={28 + i * 30} x2={VIEWBOX_W - 10} y2={31 + i * 30}
-            stroke="#9a7230"
-            strokeWidth="0.5"
-            opacity="0.22"
-          />
-        ))}
-
-        {/* ── Tracks ─────────────────────────────────────────────────── */}
-        {/* Opponent track (outer) — green tinted groove */}
-        <Track
-          holes={oppHoles}
-          rx={OPP_RX}
-          lx={OPP_LX}
-          color="#39FF14"
-        />
-        {/* Player track (inner) — gold tinted groove */}
-        <Track
-          holes={playerHoles}
-          rx={PLAYER_RX}
-          lx={PLAYER_LX}
-          color="#d4a843"
-        />
-
-        {/* ── Skunk lines ────────────────────────────────────────────── */}
-        {/* Skunk at 91 */}
-        <line
-          x1="16" y1={skunkY}
-          x2={VIEWBOX_W - 16} y2={skunkY}
-          stroke="#d4a843" strokeWidth="1"
-          strokeDasharray="4,3" opacity="0.55"
-        />
-        <text
-          x={VIEWBOX_W - 13} y={skunkY + 3}
-          fill="#d4a843" fontSize="7"
-          textAnchor="middle" opacity="0.7"
-          fontWeight="bold"
-        >
-          S
-        </text>
-
-        {/* Double-skunk at 61 */}
-        <line
-          x1="16" y1={dblSkunkY}
-          x2={VIEWBOX_W - 16} y2={dblSkunkY}
-          stroke="#d4a843" strokeWidth="0.8"
-          strokeDasharray="3,4" opacity="0.4"
-        />
-        <text
-          x={VIEWBOX_W - 13} y={dblSkunkY + 3}
-          fill="#d4a843" fontSize="6"
-          textAnchor="middle" opacity="0.55"
-          fontWeight="bold"
-        >
-          2S
-        </text>
-
-        {/* ── Score number markers ────────────────────────────────────── */}
-        {SCORE_MARKERS_R.map(n => (
-          <text
-            key={n}
-            x={OPP_RX + 15}
-            y={(playerHoles[n - 1]?.y ?? 0) + 3}
-            fill="#d4a843" fontSize="6"
-            opacity="0.45"
-            fontFamily="DM Sans, sans-serif"
-          >
-            {n}
-          </text>
-        ))}
-        {SCORE_MARKERS_L.map(n => (
-          <text
-            key={n}
-            x={OPP_LX - 14}
-            y={(playerHoles[n - 1]?.y ?? 0) + 3}
-            fill="#d4a843" fontSize="6"
-            textAnchor="end" opacity="0.45"
-            fontFamily="DM Sans, sans-serif"
-          >
-            {n}
-          </text>
-        ))}
-
-        {/* START / 60 / WIN labels */}
-        <text
-          x={VIEWBOX_W / 2} y={VIEWBOX_H - 8}
-          fill="#d4a843" fontSize="7"
-          textAnchor="middle" opacity="0.45"
-          fontFamily="DM Sans, sans-serif"
-        >
-          START
-        </text>
-        <text
-          x={VIEWBOX_W / 2} y={TOP_Y - 10}
-          fill="#d4a843" fontSize="7"
-          textAnchor="middle" opacity="0.45"
-          fontFamily="DM Sans, sans-serif"
-        >
-          60
-        </text>
-        <text
-          x={PLAYER_LX}
-          y={(playerHoles[120]?.y ?? BOTTOM_Y) + 13}
-          fill="#d4a843" fontSize="6"
-          textAnchor="middle" opacity="0.55"
-          fontFamily="DM Sans, sans-serif"
-        >
-          WIN
-        </text>
-
-        {/* ── Pegs (with CSS-transition animation) ───────────────────── */}
-        {/* Opponent pegs (green, outer track) */}
-        <Pegs holes={oppHoles} pos={opponent} gradId="greenPeg" />
-        {/* Player pegs (gold, inner track) */}
-        <Pegs holes={playerHoles} pos={player} gradId="goldPeg" />
+        {svgContent}
       </svg>
     </div>
   );

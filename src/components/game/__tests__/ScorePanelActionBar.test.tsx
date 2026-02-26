@@ -31,45 +31,15 @@ describe('ScorePanel', () => {
     expect(screen.getAllByText('D')).toHaveLength(1);
   });
 
-  it('calls onToggleBoard when clicked', () => {
-    const onToggle = vi.fn();
+  it('does not render board toggle text', () => {
     render(
       <ScorePanel
         playerScore={0}
         opponentScore={0}
         dealerIndex={0}
-        onToggleBoard={onToggle}
-        showBoard={false}
       />,
     );
-    fireEvent.click(screen.getByTestId('score-panel'));
-    expect(onToggle).toHaveBeenCalledOnce();
-  });
-
-  it('shows ▲ Board when board is visible', () => {
-    render(
-      <ScorePanel
-        playerScore={0}
-        opponentScore={0}
-        dealerIndex={0}
-        onToggleBoard={() => {}}
-        showBoard={true}
-      />,
-    );
-    expect(screen.getByText(/▲/)).toBeInTheDocument();
-  });
-
-  it('shows ▼ Board when board is hidden', () => {
-    render(
-      <ScorePanel
-        playerScore={0}
-        opponentScore={0}
-        dealerIndex={0}
-        onToggleBoard={() => {}}
-        showBoard={false}
-      />,
-    );
-    expect(screen.getByText(/▼/)).toBeInTheDocument();
+    expect(screen.queryByText(/Board/)).toBeNull();
   });
 });
 

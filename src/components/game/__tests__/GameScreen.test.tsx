@@ -26,7 +26,7 @@ vi.mock('@/context/AuthContext', () => ({
 
 // Mock gemini so LLM components don't import supabase in tests
 vi.mock('@/lib/gemini', () => ({
-  callLLM: vi.fn().mockResolvedValue({ text: 'Mock STINKY response' }),
+  callLLM: vi.fn().mockResolvedValue({ text: 'Mock Sir John Skunkling response' }),
   parseLLMJson: vi.fn((_, fallback) => fallback),
 }));
 
@@ -76,17 +76,10 @@ describe('GameScreen', () => {
     expect(screen.getByLabelText(/Opponent score: 0/)).toBeInTheDocument();
   });
 
-  it('shows and hides board on toggle', async () => {
+  it('always renders cribbage board during gameplay', async () => {
     render(<GameScreen />);
     await act(async () => { fireEvent.click(screen.getByTestId('deal-me-in-btn')); });
-    // Board not shown initially
-    expect(screen.queryByTestId('cribbage-board')).toBeNull();
-    // Click score panel to toggle board
-    fireEvent.click(screen.getByTestId('score-panel'));
     expect(screen.getByTestId('cribbage-board')).toBeInTheDocument();
-    // Click again to hide
-    fireEvent.click(screen.getByTestId('score-panel'));
-    expect(screen.queryByTestId('cribbage-board')).toBeNull();
   });
 
   it('shows Play Online button on start screen', () => {

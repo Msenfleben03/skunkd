@@ -39,7 +39,7 @@ export function ScoreExplanation({ label, cards, starter, scoring, className }: 
       setExplanation(text);
       setUsed(true);
     } catch (e) {
-      setError('STINKY is taking a nap. Try again later.');
+      setError('Sir John Skunkling is taking a nap. Try again later.');
     } finally {
       setLoading(false);
     }
@@ -58,7 +58,7 @@ export function ScoreExplanation({ label, cards, starter, scoring, className }: 
           )}
           data-testid="explain-score-btn"
         >
-          {error ? '⚠ ' + error : 'Ask STINKY to explain this score'}
+          {error ? '⚠ ' + error : 'Ask Sir John Skunkling to explain this score'}
         </button>
       )}
 
@@ -66,7 +66,7 @@ export function ScoreExplanation({ label, cards, starter, scoring, className }: 
       {loading && (
         <div className="flex items-center justify-center gap-2 py-3">
           <div className="w-3 h-3 rounded-full bg-gold/60 animate-pulse" />
-          <span className="text-cream/40 text-xs italic">STINKY is thinking…</span>
+          <span className="text-cream/40 text-xs italic">Sir John Skunkling is thinking…</span>
         </div>
       )}
 
@@ -81,7 +81,7 @@ export function ScoreExplanation({ label, cards, starter, scoring, className }: 
           aria-live="polite"
         >
           <p className="text-cream/70 text-xs leading-relaxed italic">
-            <span className="text-gold/80 not-italic font-semibold">STINKY: </span>
+            <span className="text-gold/80 not-italic font-semibold">Sir John Skunkling: </span>
             {explanation}
           </p>
         </div>

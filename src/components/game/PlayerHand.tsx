@@ -1,5 +1,6 @@
 import { rankOrder, type Card } from '@/engine/types';
 import { cn } from '@/lib/utils';
+import { useCardSize } from '@/hooks/useCardSize';
 import { GameCard } from './GameCard';
 
 export interface PlayerHandProps {
@@ -19,7 +20,7 @@ export interface PlayerHandProps {
 }
 
 /**
- * Renders a hand of cards in an arc fan layout.
+ * Renders a hand of cards in a flat overlapping row.
  * Cards are auto-sorted lowest→highest by rank.
  * Supports tap-to-select with max selection enforcement.
  */
@@ -32,24 +33,26 @@ export function PlayerHand({
   faceDown = false,
   className,
 }: PlayerHandProps) {
+  const sz = useCardSize();
+
   // Auto-sort by rank order (Ace=1 ... King=13)
   const sorted = [...cards].sort((a, b) => rankOrder(a.rank) - rankOrder(b.rank));
 
   const count = sorted.length;
   if (count === 0) return null;
 
-  // Fan geometry — spread cards in a slight arc
-  const totalAngleDeg = Math.min(count * 5, 28); // total sweep angle
-  const xStep = count <= 4 ? 52 : count <= 6 ? 44 : 38; // horizontal overlap
-  const totalWidth = (count - 1) * xStep + 56; // 56px = card width
+  const xStep = sz.xStep(count);
+  // Extra gap inserted after each selected card so it doesn't cover neighbours
+  const selGap = Math.round(xStep * 0.5);
+  const totalGap = selectedIds.size * selGap;
+  const totalWidth = (count - 1) * xStep + sz.w + totalGap;
 
   return (
     <div
       className={cn('relative flex-shrink-0', className)}
       style={{
         width: totalWidth,
-        // height: card (4.9rem ≈ 78px) + lift room (14px selected) + arc offset (8px)
-        height: 110,
+        height: sz.containerH,
       }}
       aria-label="Player hand"
     >
@@ -58,32 +61,18 @@ export function PlayerHand({
         const isMaxed = selectedIds.size >= maxSelectable && !isSelected;
         const isDimmed = dimUnselectable && isMaxed;
 
-        // Arc math: angle goes from -half to +half
-        const angle =
-          count > 1 ? ((i / (count - 1)) - 0.5) * totalAngleDeg : 0;
-
-        // Cards at edges of the arc sit slightly higher (like fanned cards on a table)
-        const arcRaise = count > 1
-          ? Math.abs((i / (count - 1)) - 0.5) * 6
-          : 0;
-
-        const canClick = onCardClick && !isDimmed && !faceDown
-          ? () => onCardClick(card)
-          : faceDown
-          ? undefined
-          : !isDimmed && onCardClick
-          ? () => onCardClick(card)
-          : undefined;
+        // Count selected cards before this index to compute cumulative gap
+        let gapBefore = 0;
+        for (let j = 0; j < i; j++) {
+          if (selectedIds.has(sorted[j].id)) gapBefore += selGap;
+        }
 
         return (
           <div
             key={card.id}
             className="absolute bottom-0 transition-all duration-200"
             style={{
-              left: i * xStep,
-              bottom: arcRaise,
-              transform: `rotate(${angle}deg)`,
-              transformOrigin: 'bottom center',
+              left: i * xStep + gapBefore,
               zIndex: isSelected ? count + 10 : i,
             }}
           >

@@ -9,6 +9,8 @@ export interface GameOverProps {
   /** Opponent's final score */
   opponentScore: number;
   onPlayAgain: () => void;
+  /** Return to start screen / main menu */
+  onMainMenu?: () => void;
   /** Number of hands played in this game */
   handsPlayed?: number;
   className?: string;
@@ -46,6 +48,7 @@ export function GameOver({
   playerScore,
   opponentScore,
   onPlayAgain,
+  onMainMenu,
   handsPlayed,
   className,
 }: GameOverProps) {
@@ -53,7 +56,6 @@ export function GameOver({
   const loserScore = humanWon ? opponentScore : playerScore;
   const skunk = getSkunkTier(loserScore);
 
-  const emoji = humanWon ? '🏆' : '🦨';
   const headline = humanWon ? 'You Win!' : "SKUNK'D!";
   const subMessage = humanWon ? randomPick(WIN_MESSAGES) : randomPick(LOSE_MESSAGES);
 
@@ -68,8 +70,21 @@ export function GameOver({
       aria-label="Game over screen"
     >
       <div className="flex flex-col items-center gap-5 px-8 py-10 text-center max-w-sm">
-        {/* Big emoji */}
-        <div className="text-7xl leading-none" aria-hidden="true">{emoji}</div>
+        {/* Skunk easter egg — only shown on skunk/double-skunk */}
+        {skunk ? (
+          <img
+            src="/skunkd-deuces.png"
+            alt="You got SKUNK'D!"
+            className="w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-2xl animate-bounce"
+            style={{ animationDuration: '2s' }}
+          />
+        ) : (
+          <img
+            src={humanWon ? '/mascot-action-02.png' : '/mascot-action-01.png'}
+            alt=""
+            className="w-32 h-32 md:w-40 md:h-40 object-contain drop-shadow-xl"
+          />
+        )}
 
         {/* Headline */}
         <h1
@@ -147,6 +162,19 @@ export function GameOver({
           >
             Play Again
           </button>
+          {onMainMenu && (
+            <button
+              className={cn(
+                'w-full rounded-xl py-3 px-6 font-semibold text-sm',
+                'border border-white/10 text-cream/55',
+                'hover:border-white/20 hover:text-cream/80 transition-all duration-150',
+              )}
+              onClick={onMainMenu}
+              data-testid="main-menu-btn"
+            >
+              Main Menu
+            </button>
+          )}
           <p className="text-cream/25 text-[10px]">
             First to 121 wins. Get skunked below 91.
           </p>

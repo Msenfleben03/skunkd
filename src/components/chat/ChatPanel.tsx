@@ -26,7 +26,6 @@ interface ChatPanelProps {
 export function ChatPanel({
   gameId,
   userId,
-  displayName,
   gameContext,
   isOpen,
   onClose,
@@ -144,7 +143,7 @@ export function ChatPanel({
               )}
             >
               {msg.is_ai_suggested && (
-                <span className="text-[9px] text-skunk-green/60 block mb-0.5">STINKY suggested</span>
+                <span className="text-[9px] text-skunk-green/60 block mb-0.5">Sir John Skunkling suggested</span>
               )}
               {msg.content}
             </div>
