@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase';
 import { createGame, dealHand, updateGameStatus } from '@/lib/gameApi';
 import type { GameSummary } from '@/lib/gameApi';
 import { recordGameResult } from '@/lib/statsApi';
+import { computeGamePerformance } from '@/lib/gameStatsHelper';
 import { cn } from '@/lib/utils';
 import { ScorePanel } from './ScorePanel';
 import { CribbageBoard } from './CribbageBoard';
@@ -321,12 +322,14 @@ export function GameScreen({ className }: { className?: string }) {
     if (gameMode !== 'local') return;
     if (phase !== 'GAME_OVER' || winner === null || !auth.user || savedRef.current) return;
     savedRef.current = true;
+    const perfStats = computeGamePerformance(gameState, humanPlayerIndex);
     recordGameResult({
       won: winner === humanPlayerIndex,
       playerScore: player.score,
       opponentScore: opponent.score,
+      ...perfStats,
     }).catch(console.error);
-  }, [phase, winner, auth.user, player.score, opponent.score, gameMode, humanPlayerIndex]);
+  }, [phase, winner, auth.user, player.score, opponent.score, gameMode, humanPlayerIndex, gameState]);
 
   // Save result + broadcast game complete when online game ends
   useEffect(() => {
@@ -343,10 +346,12 @@ export function GameScreen({ className }: { className?: string }) {
     // Record stats for the local player
     if (auth.user && !savedRef.current) {
       savedRef.current = true;
+      const perfStats = computeGamePerformance(gameState, localPlayerSeat);
       recordGameResult({
         won: winner === localPlayerSeat,
         playerScore: player.score,
         opponentScore: opponent.score,
+        ...perfStats,
       }).catch(console.error);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

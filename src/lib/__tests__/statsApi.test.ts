@@ -30,6 +30,16 @@ describe('recordGameResult', () => {
       p_won: true,
       p_player_score: 121,
       p_opponent_score: 75,
+      p_total_pegging: 0,
+      p_total_hand: 0,
+      p_total_crib: 0,
+      p_hands_played: 0,
+      p_best_pegging: 0,
+      p_best_hand: 0,
+      p_best_crib: 0,
+      p_optimal_discards: 0,
+      p_total_discards: 0,
+      p_ev_deficit: 0,
     });
   });
 
