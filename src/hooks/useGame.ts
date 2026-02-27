@@ -17,6 +17,8 @@ export interface ShowScoringState {
 
 export interface UseGameOptions {
   isOnline?: boolean;
+  /** Which seat the local player occupies (default 0). Used for online mode. */
+  localPlayerIndex?: number;
 }
 
 export interface UseGameReturn {
@@ -99,7 +101,7 @@ function reducer(state: GameState, action: GameAction | { type: 'RETURN_TO_MENU'
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
 export function useGame(options: UseGameOptions = {}): UseGameReturn {
-  const { isOnline = false } = options;
+  const { isOnline = false, localPlayerIndex = HUMAN_PLAYER } = options;
   const [gameState, dispatch] = useReducer(reducer, null, createStartState);
   const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
   const [showScoring, setShowScoring] = useState<ShowScoringState | null>(null);
@@ -290,22 +292,22 @@ export function useGame(options: UseGameOptions = {}): UseGameReturn {
     if (selectedCardIds.size !== 2) return;
     dispatch({
       type: 'DISCARD',
-      playerIndex: HUMAN_PLAYER,
+      playerIndex: localPlayerIndex,
       cardIds: [...selectedCardIds],
     });
     setSelectedCardIds(new Set());
-  }, [selectedCardIds]);
+  }, [selectedCardIds, localPlayerIndex]);
 
   const playSelectedCard = useCallback(() => {
     if (selectedCardIds.size !== 1) return;
     const [cardId] = selectedCardIds;
-    dispatch({ type: 'PLAY_CARD', playerIndex: HUMAN_PLAYER, cardId });
+    dispatch({ type: 'PLAY_CARD', playerIndex: localPlayerIndex, cardId });
     setSelectedCardIds(new Set());
-  }, [selectedCardIds]);
+  }, [selectedCardIds, localPlayerIndex]);
 
   const declareGo = useCallback(() => {
-    dispatch({ type: 'DECLARE_GO', playerIndex: HUMAN_PLAYER });
-  }, []);
+    dispatch({ type: 'DECLARE_GO', playerIndex: localPlayerIndex });
+  }, [localPlayerIndex]);
 
   const advanceShow = useCallback(() => {
     dispatch({ type: 'ADVANCE_SHOW' });
@@ -325,7 +327,7 @@ export function useGame(options: UseGameOptions = {}): UseGameReturn {
     selectedCardIds,
     showScoring,
     lastPeggingScore,
-    humanPlayerIndex: HUMAN_PLAYER,
+    humanPlayerIndex: localPlayerIndex,
     newGame,
     returnToMenu,
     toggleCardSelect,

@@ -43,8 +43,6 @@ interface PendingDealData {
   handId: string;
 }
 
-const HUMAN_PLAYER = 0;
-
 /** Phases where the human's hand cards are shown */
 const HAND_VISIBLE_PHASES = new Set([
   'DISCARD_TO_CRIB',
@@ -70,7 +68,7 @@ export function GameScreen({ className }: { className?: string }) {
     selectedCardIds,
     showScoring,
     lastPeggingScore,
-    humanPlayerIndex: _unusedHumanPlayerIndex, // eslint-disable-line @typescript-eslint/no-unused-vars
+    humanPlayerIndex,
     newGame,
     returnToMenu,
     toggleCardSelect,
@@ -80,7 +78,7 @@ export function GameScreen({ className }: { className?: string }) {
     advanceShow,
     nextHand,
     dispatchRemoteAction,
-  } = useGame({ isOnline: gameMode === 'online' });
+  } = useGame({ isOnline: gameMode === 'online', localPlayerIndex: localPlayerSeat });
 
   const auth = useAuthContext();
   const navigate = useNavigate();
@@ -92,9 +90,6 @@ export function GameScreen({ className }: { className?: string }) {
   const [pendingGame, setPendingGame] = useState<PendingOnlineGame | null>(null);
   const [joinCode, setJoinCode] = useState('');
   const [onlineError, setOnlineError] = useState<string | null>(null);
-
-  // Online player index — in online mode, seat determines perspective
-  const humanPlayerIndex = gameMode === 'online' ? localPlayerSeat : HUMAN_PLAYER;
 
   // Wire up game channel for online multiplayer
   const channel = useGameChannel(
