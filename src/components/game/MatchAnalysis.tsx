@@ -50,7 +50,7 @@ export function MatchAnalysis({
       });
       setAnalysis(text);
     } catch (e) {
-      setError('Sir John Skunkling lost the scoreboard. Try again.');
+      setError('Analysis unavailable. Try again.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +79,7 @@ export function MatchAnalysis({
           {loading && (
             <div className="flex items-center justify-center gap-2 py-4">
               <div className="w-3 h-3 rounded-full bg-gold/60 animate-pulse" />
-              <span className="text-cream/40 text-xs italic">Sir John Skunkling is judging your game…</span>
+              <span className="text-cream/40 text-xs italic">Analysing your game…</span>
             </div>
           )}
 
@@ -114,7 +114,7 @@ export function MatchAnalysis({
               )}
 
               <div>
-                <p className="text-[10px] text-gold/60 uppercase tracking-widest mb-1">Sir John Skunkling'S ANALYSIS</p>
+                <p className="text-[10px] text-gold/60 uppercase tracking-widest mb-1">MATCH ANALYSIS</p>
                 <p className="text-cream/70 text-xs leading-relaxed">{analysis}</p>
               </div>
             </div>

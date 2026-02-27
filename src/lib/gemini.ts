@@ -22,7 +22,7 @@ export async function callLLM(
   });
 
   if (error) throw new Error(error.message ?? 'LLM call failed');
-  if (!data?.text) throw new Error('Empty response from Sir John Skunkling');
+  if (!data?.text) throw new Error('Empty response from LLM');
 
   return { text: data.text as string };
 }

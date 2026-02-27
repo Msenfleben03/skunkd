@@ -634,7 +634,7 @@ export function GameScreen({ className }: { className?: string }) {
               data-testid="deal-me-in-btn"
               style={{ fontFamily: "'Playfair Display', serif" }}
             >
-              {auth.loading ? 'Loading…' : 'Deal Me In'}
+              {auth.loading ? 'Loading…' : "How 'Bout a Quick Game? (Solo)"}
             </button>
 
             {/* Play Online */}
@@ -647,20 +647,32 @@ export function GameScreen({ className }: { className?: string }) {
               onClick={() => setOnlineStep('menu')}
               data-testid="play-online-btn"
             >
-              Play Online
+              Not a Loner? (Multiplayer)
             </button>
 
-            {/* Stats */}
-            <button
-              className={cn(
-                'w-full rounded-xl py-3 px-8 font-semibold text-sm',
-                'text-cream/40 hover:text-cream/60 transition-colors',
-              )}
-              onClick={() => navigate('/stats')}
-              data-testid="stats-btn"
-            >
-              My Stats
-            </button>
+            {/* Stats & History */}
+            <div className="flex gap-3 w-full">
+              <button
+                className={cn(
+                  'flex-1 rounded-xl py-3 px-4 font-semibold text-sm',
+                  'text-cream/40 hover:text-cream/60 transition-colors',
+                )}
+                onClick={() => navigate('/stats')}
+                data-testid="stats-btn"
+              >
+                My Stats
+              </button>
+              <button
+                className={cn(
+                  'flex-1 rounded-xl py-3 px-4 font-semibold text-sm',
+                  'text-cream/40 hover:text-cream/60 transition-colors',
+                )}
+                onClick={() => navigate('/history')}
+                data-testid="history-btn"
+              >
+                History
+              </button>
+            </div>
           </div>
 
           {/* Auth status / sign-in link */}

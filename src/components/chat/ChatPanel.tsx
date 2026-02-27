@@ -143,7 +143,7 @@ export function ChatPanel({
               )}
             >
               {msg.is_ai_suggested && (
-                <span className="text-[9px] text-skunk-green/60 block mb-0.5">Sir John Skunkling suggested</span>
+                <span className="text-[9px] text-skunk-green/60 block mb-0.5">AI suggested</span>
               )}
               {msg.content}
             </div>

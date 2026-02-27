@@ -34,7 +34,7 @@ export function HandReview({ handNumber, playerStats, opponentStats, className }
       });
       setReview(text);
     } catch (e) {
-      setError('Sir John Skunkling is off-duty. Try again later.');
+      setError('Coach is off-duty. Try again later.');
     } finally {
       setLoading(false);
     }
@@ -54,7 +54,7 @@ export function HandReview({ handNumber, playerStats, opponentStats, className }
         )}
         data-testid="review-hand-btn"
       >
-        {loading ? 'Sir John Skunkling is coaching…' : review ? (open ? 'Hide Review' : 'Show Review') : 'Review My Plays'}
+        {loading ? 'Reviewing your plays…' : review ? (open ? 'Hide Review' : 'Show Review') : 'Review My Plays'}
       </button>
 
       {open && (
@@ -62,7 +62,7 @@ export function HandReview({ handNumber, playerStats, opponentStats, className }
           {loading && (
             <div className="flex items-center justify-center gap-2 py-3">
               <div className="w-3 h-3 rounded-full bg-gold/60 animate-pulse" />
-              <span className="text-cream/40 text-xs italic">Sir John Skunkling is reviewing…</span>
+              <span className="text-cream/40 text-xs italic">Reviewing your plays…</span>
             </div>
           )}
 
@@ -76,7 +76,7 @@ export function HandReview({ handNumber, playerStats, opponentStats, className }
               data-testid="hand-review-content"
               aria-live="polite"
             >
-              <p className="text-[10px] text-gold/60 uppercase tracking-widest mb-1">Sir John Skunkling'S TAKE</p>
+              <p className="text-[10px] text-gold/60 uppercase tracking-widest mb-1">COACH'S TAKE</p>
               <p className="text-cream/70 text-xs leading-relaxed">{review}</p>
             </div>
           )}
