@@ -1,12 +1,12 @@
 // SKUNK'D — llm-proxy Edge Function
-// Single Gemini proxy for all LLM features. Applies STINKY personality,
+// Single Gemini proxy for all LLM features. Applies Sir John Skunkling personality,
 // enforces per-user rate limits, routes to Flash vs Pro based on task.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 // ── Personality ──────────────────────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `You are STINKY, the sharp-tongued cribbage coach for SKUNK'D.
+const SYSTEM_PROMPT = `You are Sir John Skunkling, the sharp-tongued cribbage coach for SKUNK'D.
 
 Style:
 - Witty and direct. 2-4 sentences max (chat suggestions: ≤8 words each).
@@ -24,7 +24,7 @@ function buildPrompt(task: string, context: Record<string, unknown>): { prompt: 
   switch (task) {
     case 'score_explanation':
       return {
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         prompt: `The player just scored ${context.total} points in "${context.label}".
 Cards: ${(context.cards as string[]).join(', ')}, Cut: ${context.starter}.
 Breakdown — Fifteens: ${(context.breakdown as Record<string, number>).fifteens}, Pairs: ${(context.breakdown as Record<string, number>).pairs}, Runs: ${(context.breakdown as Record<string, number>).runs}, Flush: ${(context.breakdown as Record<string, number>).flush}, Nobs: ${(context.breakdown as Record<string, number>).nobs}.
@@ -33,7 +33,7 @@ Explain this score in 2-3 sentences using cribbage terminology. ${context.total 
 
     case 'coaching_review':
       return {
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         prompt: `Coaching review for Hand ${context.handNumber}:
 Player scored — Pegging: ${context.pegging}, Hand: ${context.hand}, Crib: ${context.crib} pts.
 Opponent scored — Pegging: ${context.oppPegging}, Hand: ${context.oppHand}, Crib: ${context.oppCrib} pts.
@@ -43,7 +43,7 @@ In 3-4 sentences, give sharp coaching advice on what they did well and where the
 
     case 'match_analysis':
       return {
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         prompt: `End of game analysis:
 Winner: ${context.winner} | Score: ${context.playerScore} – ${context.opponentScore}.
 ${context.skunkType ? `Result: ${context.skunkType}!` : ''}
@@ -53,7 +53,7 @@ In 4-5 sentences, analyze the match and assign a Cribbage Grade (A through F) wi
 
     case 'chat_suggest':
       return {
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         prompt: `In a cribbage game: ${context.gameContext}.
 Generate exactly 3 short trash talk lines (≤8 words each), appropriate for this moment.
 Respond with a JSON array only, no other text. Example: ["Nice try, rookie", "That crib smells", "Counting on your fingers?"]`,
@@ -61,7 +61,7 @@ Respond with a JSON array only, no other text. Example: ["Nice try, rookie", "Th
 
     case 'quick_reactions':
       return {
-        model: 'gemini-2.0-flash',
+        model: 'gemini-2.5-flash',
         prompt: `Generate 4 one-tap cribbage reaction phrases (2-4 words each) for this moment: ${context.moment}.
 Respond with a JSON array only. Example: ["Muggins!", "Nice nobs", "Go yourself", "29 or bust"]`,
       };
@@ -73,23 +73,28 @@ Respond with a JSON array only. Example: ["Muggins!", "Nice nobs", "Go yourself"
 
 // ── Edge Function ─────────────────────────────────────────────────────────────
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+function jsonResponse(body: Record<string, unknown>, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   try {
     const { task, context } = await req.json() as { task: string; context: Record<string, unknown> };
 
     if (!task || !context) {
-      return new Response(JSON.stringify({ error: 'task and context are required' }), {
-        status: 400, headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'task and context are required' }, 400);
     }
 
     // Auth: identify requesting user
@@ -101,9 +106,7 @@ Deno.serve(async (req: Request) => {
     );
     const { data: { user } } = await supabaseUser.auth.getUser();
     if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401, headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Unauthorized' }, 401);
     }
 
     // Rate limit: max 30 calls/hour per user
@@ -120,9 +123,7 @@ Deno.serve(async (req: Request) => {
       .gte('called_at', oneHourAgo);
 
     if ((count ?? 0) >= 30) {
-      return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again in an hour.' }), {
-        status: 429, headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonResponse({ error: 'Rate limit exceeded. Try again in an hour.' }, 429);
     }
 
     // Build prompt and call Gemini
@@ -139,8 +140,9 @@ Deno.serve(async (req: Request) => {
           system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
           contents: [{ role: 'user', parts: [{ text: prompt }] }],
           generationConfig: {
-            maxOutputTokens: task === 'match_analysis' ? 350 : 200,
+            maxOutputTokens: task === 'match_analysis' ? 500 : 300,
             temperature: task === 'chat_suggest' || task === 'quick_reactions' ? 1.0 : 0.75,
+            thinkingConfig: { thinkingBudget: 0 },
           },
         }),
       }
@@ -157,15 +159,10 @@ Deno.serve(async (req: Request) => {
     // Log the call (best-effort, don't fail on error)
     supabaseService.from('llm_calls').insert({ user_id: user.id, task }).then(() => {});
 
-    return new Response(JSON.stringify({ text }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return jsonResponse({ text }, 200);
 
   } catch (err) {
     console.error('llm-proxy error:', err);
-    return new Response(JSON.stringify({ error: 'STINKY is temporarily unavailable.' }), {
-      status: 500, headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonResponse({ error: 'Sir John Skunkling is temporarily unavailable.' }, 500);
   }
 });

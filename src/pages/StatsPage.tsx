@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/context/AuthContext';
 import { fetchStats, type PlayerStats } from '@/lib/statsApi';
+import { AuthModal } from '@/components/auth/AuthModal';
 
 function winRate(wins: number, played: number): string {
   if (played === 0) return '0%';
@@ -10,14 +11,19 @@ function winRate(wins: number, played: number): string {
 
 export function StatsPage() {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuthContext();
+  const auth = useAuthContext();
+  const { user, loading: authLoading } = auth;
   const [stats, setStats] = useState<PlayerStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const userId = user?.id;
   useEffect(() => {
     if (authLoading) return;
-    if (!userId) { navigate('/'); return; }
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -34,7 +40,7 @@ export function StatsPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [userId, navigate, authLoading]);
+  }, [userId, authLoading]);
 
   const bgStyle = {
     background: 'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
@@ -49,7 +55,7 @@ export function StatsPage() {
           className="text-cream/50 hover:text-cream/80 transition-colors text-sm"
           data-testid="stats-back-btn"
         >
-          ← Back
+          &larr; Back
         </button>
         <h1
           className="text-lg font-black text-gold"
@@ -66,7 +72,23 @@ export function StatsPage() {
         </div>
       )}
 
-      {!loading && !stats && (
+      {/* Unauthenticated — prompt to sign in */}
+      {!loading && !userId && (
+        <div className="text-center py-16 max-w-xs" data-testid="stats-sign-in">
+          <p className="text-cream/60 text-sm mb-4">
+            Sign in to track your wins, streaks, and skunks.
+          </p>
+          <button
+            className="rounded-xl py-3 px-6 font-semibold text-sm bg-gold text-skunk-dark hover:bg-gold-bright transition-colors"
+            onClick={() => setShowAuthModal(true)}
+            data-testid="stats-sign-in-btn"
+          >
+            Sign In / Create Account
+          </button>
+        </div>
+      )}
+
+      {!loading && !stats && userId && (
         <div className="text-center py-20" data-testid="stats-error">
           <p className="text-cream/50 text-sm">Couldn&apos;t load stats. Try again.</p>
           <button
@@ -86,7 +108,7 @@ export function StatsPage() {
 
       {!loading && stats && stats.games_played === 0 && (
         <div className="text-center py-20" data-testid="stats-empty">
-          <p className="text-cream/50 text-sm italic">No games yet — deal yourself in.</p>
+          <p className="text-cream/50 text-sm italic">No games yet &mdash; deal yourself in.</p>
         </div>
       )}
 
@@ -123,7 +145,7 @@ export function StatsPage() {
           {/* Streak */}
           <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] px-5 py-4">
             <p className="text-cream/70 text-sm font-semibold">
-              {stats.current_streak > 0 ? '🔥 ' : ''}
+              {stats.current_streak > 0 ? '\uD83D\uDD25 ' : ''}
               <span data-testid="stats-current-streak">{stats.current_streak}</span>-game win streak
             </p>
             <p className="text-cream/30 text-xs mt-0.5">
@@ -156,11 +178,23 @@ export function StatsPage() {
         </div>
       )}
 
-      {/* Guest nudge */}
+      {/* Guest upgrade nudge */}
       {!loading && user?.isGuest && (
-        <p className="mt-6 text-cream/25 text-[10px] text-center max-w-xs" data-testid="stats-guest-nudge">
-          Sign in to keep your stats across devices.
-        </p>
+        <button
+          className="mt-6 text-gold/50 hover:text-gold/80 text-xs transition-colors"
+          onClick={() => setShowAuthModal(true)}
+          data-testid="stats-guest-nudge"
+        >
+          Sign in to keep your stats across devices
+        </button>
+      )}
+
+      {/* Auth modal */}
+      {showAuthModal && (
+        <AuthModal
+          onClose={() => setShowAuthModal(false)}
+          upgradeMode={!!user?.isGuest}
+        />
       )}
     </div>
   );

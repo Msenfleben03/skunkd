@@ -363,14 +363,23 @@ export function GameScreen({ className }: { className?: string }) {
             </button>
           </div>
 
-          {/* Auth status */}
-          {auth.user && !auth.user.isGuest && (
+          {/* Auth status / sign-in link */}
+          {auth.user && !auth.user.isGuest ? (
             <p
               className="animate-float-in text-cream/30 text-[9px] mt-4"
               style={{ animationDelay: '0.48s' }}
             >
               Signed in as {auth.user.displayName}
             </p>
+          ) : (
+            <button
+              className="animate-float-in mt-4 text-gold/50 hover:text-gold/80 text-xs transition-colors"
+              style={{ animationDelay: '0.48s' }}
+              onClick={() => setShowAuthModal(true)}
+              data-testid="sign-in-btn"
+            >
+              Sign In / Create Account
+            </button>
           )}
 
           <p
