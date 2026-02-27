@@ -196,6 +196,7 @@ function buildSynthStateForCandidate(
     ],
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
 }
 

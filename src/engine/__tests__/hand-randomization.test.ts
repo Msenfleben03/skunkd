@@ -55,6 +55,7 @@ function makePeggingState(overrides: Partial<GameState> = {}): GameState {
     ],
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
 
   return { ...base, ...overrides };

@@ -83,6 +83,7 @@ function createStartState(): GameState {
     ],
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
 }
 

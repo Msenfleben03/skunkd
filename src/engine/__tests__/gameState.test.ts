@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Card, GameState, PlayerState, PeggingState } from '../types';
-import { createCard } from '../types';
+import { createCard, cardValue } from '../types';
 import { createGame, gameReducer } from '../gameState';
 
 /** Helper to create cards concisely */
@@ -36,6 +36,7 @@ function makeState(overrides: Partial<GameState>): GameState {
     ],
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
   return { ...defaults, ...overrides };
 }
@@ -548,5 +549,138 @@ describe('decisionLog snapshot recording', () => {
     g = gameReducer(g, { type: 'DISCARD', playerIndex: 0, cardIds: [h0[0].id, h0[1].id] });
     g = gameReducer(g, { type: 'DISCARD', playerIndex: 1, cardIds: [h1[0].id, h1[1].id] });
     expect(g.decisionLog).toHaveLength(2); // 2 discard decisions
+  });
+});
+
+describe('handStatsHistory', () => {
+  /** Play all pegging cards automatically */
+  function playThroughPegging(state: GameState): GameState {
+    while (state.phase === 'PEGGING') {
+      const cp = state.pegging.currentPlayerIndex;
+      const cards = state.pegging.playerCards[cp];
+      if (cards.length > 0) {
+        const playable = cards.find(c => state.pegging.count + cardValue(c.rank) <= 31);
+        if (playable) {
+          state = gameReducer(state, { type: 'PLAY_CARD', playerIndex: cp, cardId: playable.id });
+        } else {
+          state = gameReducer(state, { type: 'DECLARE_GO', playerIndex: cp });
+        }
+      } else {
+        state = gameReducer(state, { type: 'DECLARE_GO', playerIndex: cp });
+      }
+    }
+    return state;
+  }
+
+  /** Advance through all show phases until HAND_COMPLETE or GAME_OVER */
+  function playThroughShow(state: GameState): GameState {
+    while (state.phase === 'SHOW_NONDEALER' || state.phase === 'SHOW_DEALER' || state.phase === 'SHOW_CRIB') {
+      state = gameReducer(state, { type: 'ADVANCE_SHOW' });
+    }
+    return state;
+  }
+
+  /** Play a full hand from DEALING through to HAND_COMPLETE or GAME_OVER */
+  function playFullHand(state: GameState): GameState {
+    // Deal
+    state = gameReducer(state, { type: 'DEAL' });
+    // Discard
+    const h0 = state.players[0].hand;
+    const h1 = state.players[1].hand;
+    state = gameReducer(state, { type: 'DISCARD', playerIndex: 0, cardIds: [h0[0].id, h0[1].id] });
+    state = gameReducer(state, { type: 'DISCARD', playerIndex: 1, cardIds: [h1[0].id, h1[1].id] });
+    // Cut
+    state = gameReducer(state, { type: 'CUT' });
+    // Handle His Heels win
+    if (state.phase === 'GAME_OVER') return state;
+    // Pegging
+    state = playThroughPegging(state);
+    // Show
+    state = playThroughShow(state);
+    return state;
+  }
+
+  it('starts with empty handStatsHistory', () => {
+    const state = createGame(2);
+    expect(state.handStatsHistory).toEqual([]);
+  });
+
+  it('appends snapshot at HAND_COMPLETE', () => {
+    let state = createGame(2);
+    state = playFullHand(state);
+
+    // If game ended due to score >= 121, we still expect a snapshot
+    if (state.phase === 'GAME_OVER') {
+      expect(state.handStatsHistory).toHaveLength(1);
+      return;
+    }
+
+    expect(state.phase).toBe('HAND_COMPLETE');
+    expect(state.handStatsHistory).toHaveLength(1);
+
+    const snapshot = state.handStatsHistory[0];
+    expect(snapshot.handNumber).toBe(1);
+    expect(snapshot.dealerIndex).toBe(0);
+    expect(snapshot.stats).toHaveLength(2);
+    expect(snapshot.starterCard).toBeDefined();
+    expect(snapshot.starterCard).toEqual(state.starter);
+  });
+
+  it('appends snapshot at GAME_OVER during show', () => {
+    // Set up a state where non-dealer will win during SHOW_NONDEALER
+    const state = makeState({
+      phase: 'SHOW_NONDEALER',
+      dealerIndex: 0,
+      handNumber: 5,
+      starter: card('5', 'C'),
+      players: [
+        makePlayer({ score: 100, hand: [card('A', 'H'), card('3', 'S'), card('6', 'D'), card('Q', 'C')] }),
+        makePlayer({ score: 115, hand: [card('5', 'H'), card('5', 'S'), card('5', 'D'), card('J', 'C')] }),
+      ],
+      crib: [card('2', 'H'), card('4', 'S'), card('8', 'D'), card('9', 'C')],
+    });
+
+    const result = gameReducer(state, { type: 'ADVANCE_SHOW' });
+    expect(result.phase).toBe('GAME_OVER');
+    expect(result.handStatsHistory).toHaveLength(1);
+
+    const snapshot = result.handStatsHistory[0];
+    expect(snapshot.handNumber).toBe(5);
+    expect(snapshot.dealerIndex).toBe(0);
+    expect(snapshot.starterCard).toEqual(card('5', 'C'));
+  });
+
+  it('accumulates across NEXT_HAND', () => {
+    let state = createGame(2);
+
+    // Play first hand
+    state = playFullHand(state);
+    if (state.phase === 'GAME_OVER') {
+      // Game ended in hand 1; just verify we have 1 snapshot
+      expect(state.handStatsHistory).toHaveLength(1);
+      return;
+    }
+    expect(state.handStatsHistory).toHaveLength(1);
+
+    // Start second hand
+    state = gameReducer(state, { type: 'NEXT_HAND' });
+    // handStatsHistory must survive NEXT_HAND
+    expect(state.handStatsHistory).toHaveLength(1);
+
+    // Play second hand
+    state = playFullHand(state);
+    if (state.phase === 'GAME_OVER') {
+      expect(state.handStatsHistory).toHaveLength(2);
+      return;
+    }
+    expect(state.handStatsHistory).toHaveLength(2);
+
+    // Verify hand numbers
+    expect(state.handStatsHistory[0].handNumber).toBe(1);
+    expect(state.handStatsHistory[1].handNumber).toBe(2);
+
+    // Verify dealer alternation
+    expect(state.handStatsHistory[0].dealerIndex).toBe(0);
+    expect(state.handStatsHistory[1].dealerIndex).toBe(1);
   });
 });

@@ -1,4 +1,4 @@
-import type { Card, GameState, GameAction, PlayerState, PeggingState, HandStats, DecisionSnapshot } from './types';
+import type { Card, GameState, GameAction, PlayerState, PeggingState, HandStats, HandStatsSnapshot, DecisionSnapshot } from './types';
 import { cardValue } from './types';
 import { createDeck, shuffle, deal } from './deck';
 import { scoreHand } from './scoring';
@@ -37,6 +37,7 @@ export function createGame(playerCount: number): GameState {
     handStats,
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
 }
 
@@ -446,7 +447,7 @@ function handleAdvanceShow(state: GameState): GameState {
       const newHandStats = updateHandStats(state.handStats, nonDealerIndex, 'hand', result.total);
 
       if (newPlayers[nonDealerIndex].score >= WIN_SCORE) {
-        return { ...state, phase: 'GAME_OVER', players: newPlayers, handStats: newHandStats, winner: nonDealerIndex };
+        return { ...state, phase: 'GAME_OVER', players: newPlayers, handStats: newHandStats, handStatsHistory: appendHandStatsSnapshot(state, newHandStats), winner: nonDealerIndex };
       }
       return { ...state, phase: 'SHOW_DEALER', players: newPlayers, handStats: newHandStats };
     }
@@ -456,7 +457,7 @@ function handleAdvanceShow(state: GameState): GameState {
       const newHandStats = updateHandStats(state.handStats, state.dealerIndex, 'hand', result.total);
 
       if (newPlayers[state.dealerIndex].score >= WIN_SCORE) {
-        return { ...state, phase: 'GAME_OVER', players: newPlayers, handStats: newHandStats, winner: state.dealerIndex };
+        return { ...state, phase: 'GAME_OVER', players: newPlayers, handStats: newHandStats, handStatsHistory: appendHandStatsSnapshot(state, newHandStats), winner: state.dealerIndex };
       }
       return { ...state, phase: 'SHOW_CRIB', players: newPlayers, handStats: newHandStats };
     }
@@ -466,9 +467,9 @@ function handleAdvanceShow(state: GameState): GameState {
       const newHandStats = updateHandStats(state.handStats, state.dealerIndex, 'crib', result.total);
 
       if (newPlayers[state.dealerIndex].score >= WIN_SCORE) {
-        return { ...state, phase: 'GAME_OVER', players: newPlayers, handStats: newHandStats, winner: state.dealerIndex };
+        return { ...state, phase: 'GAME_OVER', players: newPlayers, handStats: newHandStats, handStatsHistory: appendHandStatsSnapshot(state, newHandStats), winner: state.dealerIndex };
       }
-      return { ...state, phase: 'HAND_COMPLETE', players: newPlayers, handStats: newHandStats };
+      return { ...state, phase: 'HAND_COMPLETE', players: newPlayers, handStats: newHandStats, handStatsHistory: appendHandStatsSnapshot(state, newHandStats) };
     }
     default:
       throw new Error(`Cannot advance show in phase ${state.phase}`);
@@ -543,4 +544,14 @@ function updateHandStats(
     if (i !== playerIndex) return s;
     return { ...s, [category]: s[category] + points };
   });
+}
+
+function appendHandStatsSnapshot(state: GameState, handStats: readonly HandStats[]): readonly HandStatsSnapshot[] {
+  const snapshot: HandStatsSnapshot = {
+    handNumber: state.handNumber,
+    dealerIndex: state.dealerIndex,
+    stats: handStats,
+    starterCard: state.starter!,
+  };
+  return [...state.handStatsHistory, snapshot];
 }

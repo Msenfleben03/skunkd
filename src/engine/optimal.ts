@@ -213,6 +213,7 @@ function buildSynthStateForPlay(
     ],
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
 }
 

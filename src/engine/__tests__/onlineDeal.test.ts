@@ -28,6 +28,7 @@ function makeStartState(scores: [number, number] = [0, 0]): GameState {
     ],
     winner: null,
     decisionLog: [],
+    handStatsHistory: [],
   };
 }
 

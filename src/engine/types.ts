@@ -90,6 +90,14 @@ export interface HandStats {
   readonly crib: number;
 }
 
+// Per-hand scoring snapshot for post-game analysis
+export interface HandStatsSnapshot {
+  readonly handNumber: number;
+  readonly dealerIndex: number;
+  readonly stats: readonly HandStats[];
+  readonly starterCard: Card;
+}
+
 // Snapshot of a player decision for coaching analysis
 export interface DecisionSnapshot {
   readonly type: 'discard' | 'pegging_play';
@@ -114,6 +122,7 @@ export interface GameState {
   readonly handStats: readonly HandStats[];
   readonly winner: number | null;
   readonly decisionLog: readonly DecisionSnapshot[];
+  readonly handStatsHistory: readonly HandStatsSnapshot[];
 }
 
 // Game actions
