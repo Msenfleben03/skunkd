@@ -4,6 +4,7 @@ import { GameScreen } from '@/components/game/GameScreen';
 import { Join } from '@/pages/Join';
 import { StatsPage } from '@/pages/StatsPage';
 import { PostGameSummary } from '@/pages/PostGameSummary';
+import { HistoryPage } from '@/pages/HistoryPage';
 import './index.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/join/:code" element={<Join />} />
           <Route path="/stats" element={<StatsPage />} />
           <Route path="/game-stats" element={<PostGameSummary />} />
+          <Route path="/history" element={<HistoryPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
