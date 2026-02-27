@@ -604,7 +604,7 @@ export function GameScreen({ className }: { className?: string }) {
             className="animate-float-in text-cream/55 italic text-sm mb-1"
             style={{ fontFamily: "'Playfair Display', serif", animationDelay: '0.1s' }}
           >
-            The cribbage game that bites back.
+            The smell of failure is only one street away.
           </p>
           <p
             className="animate-float-in text-cream/25 text-[10px] mb-7 leading-relaxed"
@@ -686,7 +686,7 @@ export function GameScreen({ className }: { className?: string }) {
             className="animate-float-in text-cream/15 text-[9px] mt-2"
             style={{ animationDelay: '0.55s' }}
           >
-            Get skunked below 91 and you'll never live it down.
+            Lose by more than 31 and you'll never live it down.
           </p>
         </div>
 
