@@ -4,6 +4,22 @@ import { useAuthContext } from '@/context/AuthContext';
 import { fetchStats, type PlayerStats } from '@/lib/statsApi';
 import { AuthModal } from '@/components/auth/AuthModal';
 
+/** Fields from migration 008 — not yet in auto-generated database.types.ts */
+interface HandPerformanceFields {
+  total_pegging_points: number;
+  total_hand_points: number;
+  total_crib_points: number;
+  total_hands_played: number;
+  best_pegging: number;
+  best_hand_score: number;
+  best_crib_score: number;
+  optimal_discards: number;
+  total_discards: number;
+  total_ev_deficit: number;
+}
+
+type ExtendedStats = PlayerStats & HandPerformanceFields;
+
 function winRate(wins: number, played: number): string {
   if (played === 0) return '0%';
   return `${Math.round((wins / played) * 100)}%`;
@@ -112,7 +128,9 @@ export function StatsPage() {
         </div>
       )}
 
-      {!loading && stats && stats.games_played > 0 && (
+      {!loading && stats && stats.games_played > 0 && (() => {
+        const ext = stats as ExtendedStats;
+        return (
         <div className="w-full max-w-sm space-y-3">
           {/* Win rate */}
           <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] px-5 py-4">
@@ -175,8 +193,75 @@ export function StatsPage() {
               </div>
             </div>
           </div>
+
+          {/* Scoring Averages */}
+          {ext.total_hands_played > 0 && (
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] px-5 py-4">
+              <p className="text-[10px] text-gold/50 uppercase tracking-widest mb-3">Scoring Averages</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-avg-pegging">
+                    {(ext.total_pegging_points / ext.total_hands_played).toFixed(1)}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Avg Pegging</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-best-pegging">
+                    {ext.best_pegging}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Best Pegging</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-avg-hand">
+                    {(ext.total_hand_points / ext.total_hands_played).toFixed(1)}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Avg Hand</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-best-hand">
+                    {ext.best_hand_score}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Best Hand</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-avg-crib">
+                    {(ext.total_crib_points / Math.ceil(ext.total_hands_played / 2)).toFixed(1)}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Avg Crib</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-best-crib">
+                    {ext.best_crib_score}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Best Crib</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Discard Accuracy */}
+          {ext.total_discards > 0 && (
+            <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] px-5 py-4">
+              <p className="text-[10px] text-gold/50 uppercase tracking-widest mb-3">Discard Accuracy</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-strategic-pct">
+                    {Math.round((ext.optimal_discards / ext.total_discards) * 100) + '%'}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Strategic Rounds</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-2xl font-black text-cream/80 tabular-nums" data-testid="stats-ev-deficit">
+                    {(ext.total_ev_deficit / ext.total_discards).toFixed(1)}
+                  </p>
+                  <p className="text-cream/30 text-[10px]">Avg EV Deficit</p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
+        );
+      })()}
 
       {/* Guest upgrade nudge */}
       {!loading && user?.isGuest && (
