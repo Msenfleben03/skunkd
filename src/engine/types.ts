@@ -125,4 +125,5 @@ export type GameAction =
   | { type: 'PLAY_CARD'; playerIndex: number; cardId: string }
   | { type: 'DECLARE_GO'; playerIndex: number }
   | { type: 'ADVANCE_SHOW' }
-  | { type: 'NEXT_HAND' };
+  | { type: 'NEXT_HAND' }
+  | { type: 'LOAD_ONLINE_DEAL'; hands: [Card[], Card[]]; starter: Card; dealerIndex: number; handNumber: number };

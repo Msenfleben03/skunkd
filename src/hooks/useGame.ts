@@ -15,6 +15,10 @@ export interface ShowScoringState {
   label: string;
 }
 
+export interface UseGameOptions {
+  isOnline?: boolean;
+}
+
 export interface UseGameReturn {
   /** Raw engine state */
   gameState: GameState;
@@ -36,6 +40,8 @@ export interface UseGameReturn {
   declareGo: () => void;
   advanceShow: () => void;
   nextHand: () => void;
+  /** Dispatch an action from a remote player (online mode only) */
+  dispatchRemoteAction: (action: GameAction) => void;
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -92,7 +98,8 @@ function reducer(state: GameState, action: GameAction | { type: 'RETURN_TO_MENU'
 
 // ── Hook ─────────────────────────────────────────────────────────────────────
 
-export function useGame(): UseGameReturn {
+export function useGame(options: UseGameOptions = {}): UseGameReturn {
+  const { isOnline = false } = options;
   const [gameState, dispatch] = useReducer(reducer, null, createStartState);
   const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
   const [showScoring, setShowScoring] = useState<ShowScoringState | null>(null);
@@ -112,16 +119,16 @@ export function useGame(): UseGameReturn {
     clearTimer();
     const { phase, pegging, players, dealerIndex, winner } = gameState;
 
-    // DEALING → auto-deal after short animation window
-    if (phase === 'DEALING') {
+    // DEALING → auto-deal after short animation window (local only)
+    if (phase === 'DEALING' && !isOnline) {
       timerRef.current = setTimeout(() => {
         dispatch({ type: 'DEAL' });
       }, 1200);
       return clearTimer;
     }
 
-    // DISCARD_TO_CRIB → when human has discarded, AI auto-discards
-    if (phase === 'DISCARD_TO_CRIB') {
+    // DISCARD_TO_CRIB → when human has discarded, AI auto-discards (local only)
+    if (phase === 'DISCARD_TO_CRIB' && !isOnline) {
       const humanHand = players[HUMAN_PLAYER].hand;
       const aiHand = players[AI_PLAYER].hand;
       const humanDiscarded = humanHand.length === 4;
@@ -139,7 +146,7 @@ export function useGame(): UseGameReturn {
       return clearTimer;
     }
 
-    // CUT_STARTER → auto-cut after reveal delay
+    // CUT_STARTER → auto-cut after reveal delay (BOTH modes — deterministic)
     if (phase === 'CUT_STARTER') {
       timerRef.current = setTimeout(() => {
         dispatch({ type: 'CUT' });
@@ -147,8 +154,8 @@ export function useGame(): UseGameReturn {
       return clearTimer;
     }
 
-    // PEGGING → AI's turn
-    if (phase === 'PEGGING' && pegging.currentPlayerIndex === AI_PLAYER && !winner) {
+    // PEGGING → AI's turn (local only)
+    if (phase === 'PEGGING' && pegging.currentPlayerIndex === AI_PLAYER && !isOnline && !winner) {
       const aiCards = pegging.playerCards[AI_PLAYER];
       const delay = 800 + Math.random() * 700;
 
@@ -175,6 +182,7 @@ export function useGame(): UseGameReturn {
     gameState.pegging.count,
     gameState.pegging.pile.length,
     gameState.winner,
+    isOnline,
     clearTimer,
   ]);
 
@@ -307,6 +315,11 @@ export function useGame(): UseGameReturn {
     dispatch({ type: 'NEXT_HAND' });
   }, []);
 
+  const dispatchRemoteAction = useCallback(
+    (action: GameAction) => { dispatch(action); },
+    []
+  );
+
   return {
     gameState,
     selectedCardIds,
@@ -321,5 +334,6 @@ export function useGame(): UseGameReturn {
     declareGo,
     advanceShow,
     nextHand,
+    dispatchRemoteAction,
   };
 }

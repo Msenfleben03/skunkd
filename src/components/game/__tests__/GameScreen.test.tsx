@@ -5,6 +5,7 @@ import { GameScreen } from '../GameScreen';
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ state: null, pathname: '/', search: '', hash: '', key: 'default' }),
 }));
 
 // Mock Supabase-dependent auth context so tests run without env vars
@@ -42,6 +43,34 @@ vi.mock('@/lib/gameApi', () => ({
     players: [],
   }),
   joinGame: vi.fn().mockResolvedValue({ game: {}, players: [] }),
+  dealHand: vi.fn().mockResolvedValue({ hand_id: 'h1', your_cards: [], starter_card: null }),
+  updateGameStatus: vi.fn().mockResolvedValue(undefined),
+}));
+
+// Mock useGameChannel so GameScreen doesn't connect to Supabase Realtime
+vi.mock('@/hooks/useGameChannel', () => ({
+  useGameChannel: () => ({
+    isConnected: false,
+    opponentPresence: 'offline',
+    broadcastAction: vi.fn(),
+    onRemoteAction: vi.fn(),
+  }),
+}));
+
+// Mock supabase client used directly in GameScreen for postgres_changes
+vi.mock('@/lib/supabase', () => ({
+  supabase: {
+    channel: () => ({
+      on: vi.fn().mockReturnThis(),
+      subscribe: vi.fn().mockReturnThis(),
+    }),
+    removeChannel: vi.fn(),
+    from: () => ({
+      select: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+    }),
+  },
 }));
 
 describe('GameScreen', () => {

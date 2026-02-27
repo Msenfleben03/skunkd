@@ -72,6 +72,8 @@ export function gameReducer(state: GameState, action: GameAction): GameState {
       return handleAdvanceShow(state);
     case 'NEXT_HAND':
       return handleNextHand(state);
+    case 'LOAD_ONLINE_DEAL':
+      return handleLoadOnlineDeal(state, action);
     default:
       return state;
   }
@@ -491,6 +493,29 @@ function handleNextHand(state: GameState): GameState {
     handNumber: state.handNumber + 1,
     pegging: emptyPegging(state.players.length, newDealerIndex),
     handStats: state.handStats.map(() => ({ pegging: 0, hand: 0, crib: 0 })),
+  };
+}
+
+function handleLoadOnlineDeal(
+  state: GameState,
+  action: { hands: [readonly Card[], readonly Card[]]; starter: Card; dealerIndex: number; handNumber: number }
+): GameState {
+  return {
+    ...state,
+    phase: 'DISCARD_TO_CRIB',
+    deck: [action.starter],
+    players: state.players.map((p, i) => ({
+      ...p,
+      hand: [...action.hands[i]],
+    })),
+    crib: [],
+    starter: null,
+    dealerIndex: action.dealerIndex,
+    handNumber: action.handNumber,
+    pegging: emptyPegging(state.players.length, action.dealerIndex),
+    handStats: state.handStats.map(() => ({ pegging: 0, hand: 0, crib: 0 })),
+    winner: null,
+    decisionLog: [],
   };
 }
 

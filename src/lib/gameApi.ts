@@ -113,7 +113,11 @@ async function getGamePlayers(gameId: string): Promise<GamePlayer[]> {
 export async function dealHand(
   gameId: string,
   handNumber: number
-): Promise<{ hand_id: string; your_cards: { rank: string; suit: string; id: string }[] }> {
+): Promise<{
+  hand_id: string;
+  your_cards: { rank: string; suit: string; id: string }[];
+  starter_card: { rank: string; suit: string; id: string } | null;
+}> {
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) throw new Error('Not authenticated');
 
@@ -122,7 +126,11 @@ export async function dealHand(
   });
 
   if (response.error) throw new Error(`Deal failed: ${response.error.message}`);
-  return response.data as { hand_id: string; your_cards: { rank: string; suit: string; id: string }[] };
+  return response.data as {
+    hand_id: string;
+    your_cards: { rank: string; suit: string; id: string }[];
+    starter_card: { rank: string; suit: string; id: string } | null;
+  };
 }
 
 // ── Actions ───────────────────────────────────────────────────────────────────

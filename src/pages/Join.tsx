@@ -36,9 +36,9 @@ export function Join() {
         await auth.signInAsGuest();
       }
 
-      await joinGame(code);
+      const gameSummary = await joinGame(code);
       // Navigate to game screen with joined game context
-      navigate('/', { state: { joinedCode: code } });
+      navigate('/', { state: { joinedGame: gameSummary } });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to join game');
       setStatus('error');

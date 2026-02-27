@@ -5,7 +5,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K'] as const;
+const RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'] as const;
 const SUITS = ['H', 'D', 'S', 'C'] as const;
 
 type Rank = typeof RANKS[number];
@@ -21,6 +21,8 @@ interface DealResponse {
   hand_id: string;
   /** Only the requesting player's own cards are returned */
   your_cards: Card[];
+  /** Starter card for this hand */
+  starter_card: Card | null;
 }
 
 // Fisher-Yates shuffle
@@ -28,7 +30,7 @@ function shuffleDeck(): Card[] {
   const deck: Card[] = [];
   for (const suit of SUITS) {
     for (const rank of RANKS) {
-      deck.push({ rank, suit, id: `${rank}${suit}` });
+      deck.push({ rank, suit, id: `${rank}-${suit}` });
     }
   }
   for (let i = deck.length - 1; i > 0; i--) {
@@ -106,10 +108,27 @@ Deno.serve(async (req: Request) => {
       .maybeSingle();
 
     if (existingHand) {
-      return new Response(
-        JSON.stringify({ error: 'Hand already dealt', hand_id: existingHand.id }),
-        { status: 409, headers: { 'Content-Type': 'application/json' } }
-      );
+      // Hand already dealt — return this player's cards (idempotent)
+      const { data: existingCards } = await supabaseService
+        .from('hand_cards')
+        .select('card')
+        .eq('hand_id', existingHand.id)
+        .eq('user_id', user.id);
+
+      const { data: handRecord } = await supabaseService
+        .from('hands')
+        .select('starter_card')
+        .eq('id', existingHand.id)
+        .single();
+
+      return new Response(JSON.stringify({
+        hand_id: existingHand.id,
+        your_cards: (existingCards ?? []).map(r => r.card),
+        starter_card: handRecord?.starter_card ?? null,
+      }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
     }
 
     // Get all (non-AI) players in this game
@@ -180,6 +199,9 @@ Deno.serve(async (req: Request) => {
       }
     });
 
+    // Pick starter card (first card after dealt cards)
+    const starterCard = deck[humanPlayers.length * 6 + aiPlayers.length * 6];
+
     // Insert all cards via service role (bypasses RLS insert restriction)
     const { error: insertError } = await supabaseService
       .from('hand_cards')
@@ -194,7 +216,13 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Return ONLY the requesting player's cards
+    // Store starter card in hand record
+    await supabaseService
+      .from('hands')
+      .update({ starter_card: starterCard })
+      .eq('id', hand.id);
+
+    // Return ONLY the requesting player's cards + starter
     const yourCards = handCardRows
       .filter(r => r.user_id === user.id)
       .map(r => r.card);
@@ -202,6 +230,7 @@ Deno.serve(async (req: Request) => {
     const response: DealResponse = {
       hand_id: hand.id,
       your_cards: yourCards,
+      starter_card: starterCard,
     };
 
     return new Response(JSON.stringify(response), {
