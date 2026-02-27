@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthContext } from '@/context/AuthContext';
 
 type Tab = 'guest' | 'sign-in' | 'sign-up';
 
@@ -15,27 +15,25 @@ export function AuthModal({ onClose, upgradeMode = false }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const auth = useAuth();
+  const auth = useAuthContext();
 
   const handleGuest = async () => {
-    await auth.signInAsGuest();
-    onClose?.();
+    const ok = await auth.signInAsGuest();
+    if (ok) onClose?.();
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    await auth.signInWithEmail(email, password);
-    if (!auth.error) onClose?.();
+    const ok = await auth.signInWithEmail(email, password);
+    if (ok) onClose?.();
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (upgradeMode) {
-      await auth.upgradeGuestAccount(email, password, displayName);
-    } else {
-      await auth.signUpWithEmail(email, password, displayName);
-    }
-    if (!auth.error) onClose?.();
+    const ok = upgradeMode
+      ? await auth.upgradeGuestAccount(email, password, displayName)
+      : await auth.signUpWithEmail(email, password, displayName);
+    if (ok) onClose?.();
   };
 
   return (

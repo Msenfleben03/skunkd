@@ -15,13 +15,13 @@ export interface UseAuthReturn {
   user: AuthUser | null;
   loading: boolean;
   error: string | null;
-  signInAsGuest: () => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
-  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
-  signInWithApple: () => Promise<void>;
-  signOut: () => Promise<void>;
-  upgradeGuestAccount: (email: string, password: string, displayName: string) => Promise<void>;
+  signInAsGuest: () => Promise<boolean>;
+  signInWithEmail: (email: string, password: string) => Promise<boolean>;
+  signUpWithEmail: (email: string, password: string, displayName: string) => Promise<boolean>;
+  signInWithGoogle: () => Promise<boolean>;
+  signInWithApple: () => Promise<boolean>;
+  signOut: () => Promise<boolean>;
+  upgradeGuestAccount: (email: string, password: string, displayName: string) => Promise<boolean>;
   clearError: () => void;
 }
 
@@ -54,14 +54,16 @@ export function useAuth(): UseAuthReturn {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleAuthAction = useCallback(async (action: () => Promise<AuthUser | void>) => {
+  const handleAuthAction = useCallback(async (action: () => Promise<AuthUser | void>): Promise<boolean> => {
     setError(null);
     setLoading(true);
     try {
       const result = await action();
       if (result) setUser(result);
+      return true;
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Authentication failed');
+      return false;
     } finally {
       setLoading(false);
     }
