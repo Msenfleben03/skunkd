@@ -35,7 +35,8 @@ type OnlineBroadcast =
   | { type: 'deal_complete'; handNumber: number; creatorHand: Card[]; starter: Card; handId: string }
   | { type: 'joiner_ready'; joinerHand: Card[] }
   | { type: 'game_action'; action: GameAction }
-  | { type: 'game_complete'; winnerIndex: number };
+  | { type: 'game_complete'; winnerIndex: number }
+  | { type: 'ready_next_hand' };
 
 interface PendingDealData {
   myHand: Card[];
@@ -62,6 +63,8 @@ export function GameScreen({ className }: { className?: string }) {
   const [localPlayerSeat, setLocalPlayerSeat] = useState<0 | 1>(0);
   const [, setOpponentUserId] = useState<string | null>(null);
   const [pendingDealData, setPendingDealData] = useState<PendingDealData | null>(null);
+  const [localReadyNextHand, setLocalReadyNextHand] = useState(false);
+  const [opponentReadyNextHand, setOpponentReadyNextHand] = useState(false);
 
   const {
     gameState,
@@ -103,6 +106,14 @@ export function GameScreen({ className }: { className?: string }) {
   const opponentPlayerIndex = (humanPlayerIndex + 1) % 2;
   const player = players[humanPlayerIndex];
   const opponent = players[opponentPlayerIndex];
+
+  // Reset ready-gate when advancing past HAND_COMPLETE
+  useEffect(() => {
+    if (phase !== 'HAND_COMPLETE') {
+      setLocalReadyNextHand(false);
+      setOpponentReadyNextHand(false);
+    }
+  }, [phase]);
 
   // ── Read join state from navigation (joiner arriving from /join/:code) ────
   useEffect(() => {
@@ -245,8 +256,16 @@ export function GameScreen({ className }: { className?: string }) {
           break;
         }
 
+        case 'ready_next_hand': {
+          setOpponentReadyNextHand(true);
+          break;
+        }
+
         case 'game_action': {
-          // Remote player performed an engine action
+          // In online mode, ignore ADVANCE_SHOW — each player advances scoring screens independently
+          if (gameMode === 'online' && (msg.action as GameAction).type === 'ADVANCE_SHOW') {
+            break;
+          }
           dispatchRemoteAction(msg.action);
           break;
         }
@@ -390,18 +409,28 @@ export function GameScreen({ className }: { className?: string }) {
   }, [declareGo, gameMode, localPlayerSeat, broadcastGameAction]);
 
   const handleAdvanceShow = useCallback(() => {
-    if (gameMode === 'online') {
-      broadcastGameAction({ type: 'ADVANCE_SHOW' });
-    }
+    // Online: no broadcast — each player advances scoring screens independently
     advanceShow();
-  }, [advanceShow, gameMode, broadcastGameAction]);
+  }, [advanceShow]);
 
   const handleNextHand = useCallback(() => {
     if (gameMode === 'online') {
-      broadcastGameAction({ type: 'NEXT_HAND' });
+      // Signal readiness to opponent
+      setLocalReadyNextHand(true);
+      channel.broadcastAction({ type: 'ready_next_hand' });
+      return; // Don't advance yet — wait for opponent
     }
     nextHand();
-  }, [nextHand, gameMode, broadcastGameAction]);
+  }, [nextHand, gameMode, channel]);
+
+  // Both players ready → advance to next hand
+  useEffect(() => {
+    if (localReadyNextHand && opponentReadyNextHand) {
+      setLocalReadyNextHand(false);
+      setOpponentReadyNextHand(false);
+      nextHand();
+    }
+  }, [localReadyNextHand, opponentReadyNextHand, nextHand]);
 
   // ── Start screen ─────────────────────────────────────────────────────────
 
@@ -679,6 +708,7 @@ export function GameScreen({ className }: { className?: string }) {
           playerTotalScore={player.score}
           opponentTotalScore={opponent.score}
           onNextHand={handleNextHand}
+          waitingForOpponent={gameMode === 'online' && localReadyNextHand && !opponentReadyNextHand}
         />
         <HandReview
           handNumber={handNumber}

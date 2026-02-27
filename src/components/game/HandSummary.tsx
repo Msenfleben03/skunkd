@@ -15,6 +15,8 @@ export interface HandSummaryProps {
   onNextHand: () => void;
   /** If provided, shows a "New Game" button alongside Next Hand */
   onNewGame?: () => void;
+  /** When true, show "Waiting for opponent..." instead of "Next Hand" */
+  waitingForOpponent?: boolean;
   className?: string;
 }
 
@@ -104,6 +106,7 @@ export function HandSummary({
   opponentTotalScore,
   onNextHand,
   onNewGame,
+  waitingForOpponent,
   className,
 }: HandSummaryProps) {
   const playerHandTotal = playerStats.pegging + playerStats.hand + playerStats.crib;
@@ -177,13 +180,16 @@ export function HandSummary({
         <button
           className={cn(
             'w-full rounded-xl py-3.5 px-6 font-bold text-base',
-            'transition-all duration-150 active:scale-[0.97]',
-            'bg-gold text-skunk-dark shadow-lg shadow-gold/20 hover:bg-gold-bright',
+            'transition-all duration-150',
+            waitingForOpponent
+              ? 'bg-white/10 text-cream/50 cursor-not-allowed'
+              : 'bg-gold text-skunk-dark shadow-lg shadow-gold/20 hover:bg-gold-bright active:scale-[0.97]',
           )}
           onClick={onNextHand}
+          disabled={waitingForOpponent}
           data-testid="next-hand-btn"
         >
-          Next Hand
+          {waitingForOpponent ? 'Waiting for opponent...' : 'Next Hand'}
         </button>
 
         {onNewGame && (
