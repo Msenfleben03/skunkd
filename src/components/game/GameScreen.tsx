@@ -62,8 +62,7 @@ const SHOW_PHASES = new Set([
 export function GameScreen({ className }: { className?: string }) {
   const [gameMode, setGameMode] = useState<'local' | 'online'>('local');
   const [localPlayerSeat, setLocalPlayerSeat] = useState<0 | 1>(0);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [opponentUserId, setOpponentUserId] = useState<string | null>(null);
+  const [, setOpponentUserId] = useState<string | null>(null);
   const [pendingDealData, setPendingDealData] = useState<PendingDealData | null>(null);
 
   const {
@@ -819,7 +818,7 @@ export function GameScreen({ className }: { className?: string }) {
       )}
 
       {/* Disconnect overlay — online games only */}
-      {gameMode === 'online' && channel.opponentPresence === 'offline' && phase !== 'GAME_START' && phase !== 'GAME_OVER' && (
+      {gameMode === 'online' && channel.opponentPresence === 'offline' && phase !== 'GAME_OVER' && (
         <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center">
           <div className="text-center px-8">
             <div className="w-10 h-10 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
