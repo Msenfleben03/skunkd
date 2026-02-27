@@ -869,6 +869,16 @@ export function GameScreen({ className }: { className?: string }) {
           opponentScore={opponent.score}
           onPlayAgain={newGame}
           onMainMenu={returnToMenu}
+          onViewStats={() => {
+            navigate('/game-stats', {
+              state: {
+                playerIndex: humanPlayerIndex,
+                totalScore: player.score,
+                handStatsHistory: gameState.handStatsHistory,
+                decisionLog: gameState.decisionLog,
+              },
+            });
+          }}
           handsPlayed={handNumber}
         />
       )}

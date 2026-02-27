@@ -11,6 +11,8 @@ export interface GameOverProps {
   onPlayAgain: () => void;
   /** Return to start screen / main menu */
   onMainMenu?: () => void;
+  /** Navigate to post-game stats summary */
+  onViewStats?: () => void;
   /** Number of hands played in this game */
   handsPlayed?: number;
   className?: string;
@@ -49,6 +51,7 @@ export function GameOver({
   opponentScore,
   onPlayAgain,
   onMainMenu,
+  onViewStats,
   handsPlayed,
   className,
 }: GameOverProps) {
@@ -162,6 +165,19 @@ export function GameOver({
           >
             Play Again
           </button>
+          {onViewStats && (
+            <button
+              className={cn(
+                'w-full rounded-xl py-3 px-6 font-semibold text-sm',
+                'border border-gold/30 text-gold/80',
+                'hover:border-gold/50 hover:text-gold transition-all duration-150',
+              )}
+              onClick={onViewStats}
+              data-testid="view-stats-btn"
+            >
+              View Game Stats
+            </button>
+          )}
           {onMainMenu && (
             <button
               className={cn(
