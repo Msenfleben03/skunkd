@@ -1,0 +1,2584 @@
+{
+  "version": "1.0.0",
+  "created": "2026-02-27T00:00:00Z",
+  "generated": "2026-02-27T12:00:00Z",
+  "directory": ".claude",
+  "session_summary": {
+    "tools": 24,
+    "skills": 129,
+    "commands": 0,
+    "mcp_tools": 112,
+    "subagents": 56,
+    "total": 321
+  },
+  "capabilities": [
+    {
+      "name": "add_issue_comment",
+      "category": "mcp_tool",
+      "description": "Add a comment to a GitHub issue",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "add_observations",
+      "category": "mcp_tool",
+      "description": "Add observations to existing memory entities",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "analyze_coverage",
+      "category": "mcp_tool",
+      "description": "Analyze test coverage results via Vitest",
+      "namespace": null,
+      "server": "vitest",
+      "deferred": true
+    },
+    {
+      "name": "apply_migration",
+      "category": "mcp_tool",
+      "description": "Apply a database migration in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "ask_question",
+      "category": "mcp_tool",
+      "description": "Ask questions about a repository via DeepWiki",
+      "namespace": null,
+      "server": "deepwiki",
+      "deferred": true
+    },
+    {
+      "name": "blocks",
+      "category": "mcp_tool",
+      "description": "View Claude Code usage blocks breakdown",
+      "namespace": null,
+      "server": "ccusage",
+      "deferred": true
+    },
+    {
+      "name": "codex-daily",
+      "category": "mcp_tool",
+      "description": "View daily Codex usage statistics",
+      "namespace": null,
+      "server": "ccusage",
+      "deferred": true
+    },
+    {
+      "name": "codex-monthly",
+      "category": "mcp_tool",
+      "description": "View monthly Codex usage statistics",
+      "namespace": null,
+      "server": "ccusage",
+      "deferred": true
+    },
+    {
+      "name": "computer",
+      "category": "mcp_tool",
+      "description": "Control the browser via computer use automation",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "confirm_cost",
+      "category": "mcp_tool",
+      "description": "Confirm cost estimate for Supabase operations",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "create_branch",
+      "category": "mcp_tool",
+      "description": "Create a new branch in a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "create_branch",
+      "category": "mcp_tool",
+      "description": "Create a database branch in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "create_entities",
+      "category": "mcp_tool",
+      "description": "Create new entities in the knowledge graph",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "create_issue",
+      "category": "mcp_tool",
+      "description": "Create a new issue on GitHub",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "create_or_update_file",
+      "category": "mcp_tool",
+      "description": "Create or update a file in a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "create_project",
+      "category": "mcp_tool",
+      "description": "Create a new Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "create_pull_request",
+      "category": "mcp_tool",
+      "description": "Create a pull request on GitHub",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "create_pull_request_review",
+      "category": "mcp_tool",
+      "description": "Submit a review on a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "create_relations",
+      "category": "mcp_tool",
+      "description": "Create relations between memory entities",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "create_repository",
+      "category": "mcp_tool",
+      "description": "Create a new GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "daily",
+      "category": "mcp_tool",
+      "description": "View daily Claude Code usage statistics",
+      "namespace": null,
+      "server": "ccusage",
+      "deferred": true
+    },
+    {
+      "name": "delete_branch",
+      "category": "mcp_tool",
+      "description": "Delete a database branch in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "delete_entities",
+      "category": "mcp_tool",
+      "description": "Delete entities from the knowledge graph",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "delete_observations",
+      "category": "mcp_tool",
+      "description": "Delete observations from memory entities",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "delete_relations",
+      "category": "mcp_tool",
+      "description": "Delete relations between memory entities",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "deploy_edge_function",
+      "category": "mcp_tool",
+      "description": "Deploy a Supabase Edge Function",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "execute_sql",
+      "category": "mcp_tool",
+      "description": "Execute SQL queries on a Supabase database",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "find",
+      "category": "mcp_tool",
+      "description": "Find elements on a web page in the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "firecrawl_check_crawl_status",
+      "category": "mcp_tool",
+      "description": "Check status of a Firecrawl crawl job",
+      "namespace": null,
+      "server": "firecrawl-global",
+      "deferred": true
+    },
+    {
+      "name": "firecrawl_crawl",
+      "category": "mcp_tool",
+      "description": "Crawl a website recursively via Firecrawl",
+      "namespace": null,
+      "server": "firecrawl-global",
+      "deferred": true
+    },
+    {
+      "name": "firecrawl_extract",
+      "category": "mcp_tool",
+      "description": "Extract structured data from web pages via Firecrawl",
+      "namespace": null,
+      "server": "firecrawl-global",
+      "deferred": true
+    },
+    {
+      "name": "firecrawl_map",
+      "category": "mcp_tool",
+      "description": "Map a website's URL structure via Firecrawl",
+      "namespace": null,
+      "server": "firecrawl-global",
+      "deferred": true
+    },
+    {
+      "name": "firecrawl_scrape",
+      "category": "mcp_tool",
+      "description": "Scrape web pages via Firecrawl",
+      "namespace": null,
+      "server": "firecrawl-global",
+      "deferred": true
+    },
+    {
+      "name": "firecrawl_search",
+      "category": "mcp_tool",
+      "description": "Search the web via Firecrawl",
+      "namespace": null,
+      "server": "firecrawl-global",
+      "deferred": true
+    },
+    {
+      "name": "fork_repository",
+      "category": "mcp_tool",
+      "description": "Fork a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "form_input",
+      "category": "mcp_tool",
+      "description": "Fill in form fields in the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "generate_typescript_types",
+      "category": "mcp_tool",
+      "description": "Generate TypeScript types from Supabase schema",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_advisors",
+      "category": "mcp_tool",
+      "description": "Get Supabase database advisor recommendations",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_cost",
+      "category": "mcp_tool",
+      "description": "Get cost estimates for Supabase operations",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_edge_function",
+      "category": "mcp_tool",
+      "description": "Get details of a Supabase Edge Function",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_file_contents",
+      "category": "mcp_tool",
+      "description": "Get file contents from a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "get_issue",
+      "category": "mcp_tool",
+      "description": "Get details of a GitHub issue",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "get_logs",
+      "category": "mcp_tool",
+      "description": "Get logs from Supabase services",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_organization",
+      "category": "mcp_tool",
+      "description": "Get Supabase organization details",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_page_text",
+      "category": "mcp_tool",
+      "description": "Extract text content from the current browser page",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "get_project",
+      "category": "mcp_tool",
+      "description": "Get Supabase project details",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_project_url",
+      "category": "mcp_tool",
+      "description": "Get the URL for a Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_publishable_keys",
+      "category": "mcp_tool",
+      "description": "Get publishable API keys for a Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "get_pull_request",
+      "category": "mcp_tool",
+      "description": "Get details of a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "get_pull_request_comments",
+      "category": "mcp_tool",
+      "description": "Get comments on a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "get_pull_request_files",
+      "category": "mcp_tool",
+      "description": "Get files changed in a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "get_pull_request_reviews",
+      "category": "mcp_tool",
+      "description": "Get reviews on a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "get_pull_request_status",
+      "category": "mcp_tool",
+      "description": "Get CI/CD status of a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "getAnimations",
+      "category": "mcp_tool",
+      "description": "Get available animation components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getBackgrounds",
+      "category": "mcp_tool",
+      "description": "Get background components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getButtons",
+      "category": "mcp_tool",
+      "description": "Get button components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getComponents",
+      "category": "mcp_tool",
+      "description": "Get UI components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getDeviceMocks",
+      "category": "mcp_tool",
+      "description": "Get device mockup components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getSpecialEffects",
+      "category": "mcp_tool",
+      "description": "Get special effect components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getTextAnimations",
+      "category": "mcp_tool",
+      "description": "Get text animation components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "getUIComponents",
+      "category": "mcp_tool",
+      "description": "Get all available UI components from Magic",
+      "namespace": null,
+      "server": "magic",
+      "deferred": true
+    },
+    {
+      "name": "gif_creator",
+      "category": "mcp_tool",
+      "description": "Create GIF recordings from browser interactions",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "javascript_tool",
+      "category": "mcp_tool",
+      "description": "Execute JavaScript in the browser console",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "list_branches",
+      "category": "mcp_tool",
+      "description": "List database branches in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_commits",
+      "category": "mcp_tool",
+      "description": "List commits in a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "list_edge_functions",
+      "category": "mcp_tool",
+      "description": "List Supabase Edge Functions",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_extensions",
+      "category": "mcp_tool",
+      "description": "List Postgres extensions in a Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_issues",
+      "category": "mcp_tool",
+      "description": "List issues in a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "list_migrations",
+      "category": "mcp_tool",
+      "description": "List database migrations in a Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_organizations",
+      "category": "mcp_tool",
+      "description": "List Supabase organizations",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_projects",
+      "category": "mcp_tool",
+      "description": "List projects in a Supabase organization",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_pull_requests",
+      "category": "mcp_tool",
+      "description": "List pull requests in a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "list_tables",
+      "category": "mcp_tool",
+      "description": "List tables in a Supabase database",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "list_tests",
+      "category": "mcp_tool",
+      "description": "List available tests via Vitest",
+      "namespace": null,
+      "server": "vitest",
+      "deferred": true
+    },
+    {
+      "name": "merge_branch",
+      "category": "mcp_tool",
+      "description": "Merge a database branch in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "merge_pull_request",
+      "category": "mcp_tool",
+      "description": "Merge a GitHub pull request",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "monthly",
+      "category": "mcp_tool",
+      "description": "View monthly Claude Code usage statistics",
+      "namespace": null,
+      "server": "ccusage",
+      "deferred": true
+    },
+    {
+      "name": "navigate",
+      "category": "mcp_tool",
+      "description": "Navigate to a URL in the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "open_nodes",
+      "category": "mcp_tool",
+      "description": "Open specific nodes in the knowledge graph",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "pause_project",
+      "category": "mcp_tool",
+      "description": "Pause a Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "push_files",
+      "category": "mcp_tool",
+      "description": "Push multiple files to a GitHub repository",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "query-docs",
+      "category": "mcp_tool",
+      "description": "Query library documentation via Context7",
+      "namespace": null,
+      "server": "context7",
+      "deferred": true
+    },
+    {
+      "name": "read_console_messages",
+      "category": "mcp_tool",
+      "description": "Read browser console messages",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "read_graph",
+      "category": "mcp_tool",
+      "description": "Read the full knowledge graph from memory",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "read_network_requests",
+      "category": "mcp_tool",
+      "description": "Read browser network requests",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "read_page",
+      "category": "mcp_tool",
+      "description": "Read the current browser page content",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "read_wiki_contents",
+      "category": "mcp_tool",
+      "description": "Read wiki page contents via DeepWiki",
+      "namespace": null,
+      "server": "deepwiki",
+      "deferred": true
+    },
+    {
+      "name": "read_wiki_structure",
+      "category": "mcp_tool",
+      "description": "Read wiki structure and table of contents via DeepWiki",
+      "namespace": null,
+      "server": "deepwiki",
+      "deferred": true
+    },
+    {
+      "name": "rebase_branch",
+      "category": "mcp_tool",
+      "description": "Rebase a database branch in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "reset_branch",
+      "category": "mcp_tool",
+      "description": "Reset a database branch in Supabase",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "resize_window",
+      "category": "mcp_tool",
+      "description": "Resize the browser window",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "resolve-library-id",
+      "category": "mcp_tool",
+      "description": "Resolve a library name to its Context7 ID",
+      "namespace": null,
+      "server": "context7",
+      "deferred": true
+    },
+    {
+      "name": "restore_project",
+      "category": "mcp_tool",
+      "description": "Restore a paused Supabase project",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "run_tests",
+      "category": "mcp_tool",
+      "description": "Run tests via Vitest",
+      "namespace": null,
+      "server": "vitest",
+      "deferred": true
+    },
+    {
+      "name": "search_code",
+      "category": "mcp_tool",
+      "description": "Search code across GitHub repositories",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "search_docs",
+      "category": "mcp_tool",
+      "description": "Search Supabase documentation",
+      "namespace": null,
+      "server": "supabase",
+      "deferred": true
+    },
+    {
+      "name": "search_issues",
+      "category": "mcp_tool",
+      "description": "Search issues across GitHub repositories",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "search_nodes",
+      "category": "mcp_tool",
+      "description": "Search for nodes in the knowledge graph",
+      "namespace": null,
+      "server": "memory",
+      "deferred": true
+    },
+    {
+      "name": "search_repositories",
+      "category": "mcp_tool",
+      "description": "Search for GitHub repositories",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "search_users",
+      "category": "mcp_tool",
+      "description": "Search for GitHub users",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "sequentialthinking",
+      "category": "mcp_tool",
+      "description": "Structured sequential reasoning for complex problems",
+      "namespace": null,
+      "server": "sequential-thinking",
+      "deferred": true
+    },
+    {
+      "name": "session",
+      "category": "mcp_tool",
+      "description": "View Claude Code session usage details",
+      "namespace": null,
+      "server": "ccusage",
+      "deferred": true
+    },
+    {
+      "name": "set_project_root",
+      "category": "mcp_tool",
+      "description": "Set the project root directory for Vitest",
+      "namespace": null,
+      "server": "vitest",
+      "deferred": true
+    },
+    {
+      "name": "shortcuts_execute",
+      "category": "mcp_tool",
+      "description": "Execute a keyboard shortcut in the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "shortcuts_list",
+      "category": "mcp_tool",
+      "description": "List available keyboard shortcuts in the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "switch_browser",
+      "category": "mcp_tool",
+      "description": "Switch between browser instances",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "tabs_context_mcp",
+      "category": "mcp_tool",
+      "description": "Get context from browser tabs",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "tabs_create_mcp",
+      "category": "mcp_tool",
+      "description": "Create new browser tabs",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "update_issue",
+      "category": "mcp_tool",
+      "description": "Update a GitHub issue",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "update_plan",
+      "category": "mcp_tool",
+      "description": "Update a plan document in the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "update_pull_request_branch",
+      "category": "mcp_tool",
+      "description": "Update a GitHub pull request branch with base",
+      "namespace": null,
+      "server": "github",
+      "deferred": true
+    },
+    {
+      "name": "upload_image",
+      "category": "mcp_tool",
+      "description": "Upload an image to the browser",
+      "namespace": null,
+      "server": "claude-in-chrome",
+      "deferred": true
+    },
+    {
+      "name": "ab-test-setup",
+      "category": "skill",
+      "description": "Configure and manage A/B test experiments",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "agent-development",
+      "category": "skill",
+      "description": "Build and configure Claude Code agents",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "agent-sdk-dev:new-sdk-app",
+      "category": "skill",
+      "description": "Scaffold a new agent SDK application",
+      "namespace": "agent-sdk-dev",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "agent-tool-builder",
+      "category": "skill",
+      "description": "Create custom tools for Claude Code agents",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "all-tools",
+      "category": "skill",
+      "description": "Collect all capabilities into JSON + interactive HTML catalog",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "analyze-codebase",
+      "category": "skill",
+      "description": "Deep analysis of codebase structure and patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "api-design",
+      "category": "skill",
+      "description": "Design RESTful and GraphQL API interfaces",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "babysitter:babysit",
+      "category": "skill",
+      "description": "Monitor and supervise long-running agent tasks",
+      "namespace": "babysitter",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "babysitter:call",
+      "category": "skill",
+      "description": "Invoke the babysitter monitoring agent",
+      "namespace": "babysitter",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "backend-patterns",
+      "category": "skill",
+      "description": "Server-side architecture and design patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "check-scoring",
+      "category": "skill",
+      "description": "Validate cribbage scoring edge cases",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "claude-code-setup:claude-automation-recommender",
+      "category": "skill",
+      "description": "Recommend Claude Code automation configurations",
+      "namespace": "claude-code-setup",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "code-review:code-review",
+      "category": "skill",
+      "description": "Automated code review with quality checks",
+      "namespace": "code-review",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "codehygiene",
+      "category": "skill",
+      "description": "Code quality and hygiene enforcement",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "coding-standards",
+      "category": "skill",
+      "description": "Enforce project coding standards and conventions",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "command-creator",
+      "category": "skill",
+      "description": "Create custom slash commands for Claude Code",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "commit",
+      "category": "skill",
+      "description": "Guided git commit with conventional message format",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "context-window-management",
+      "category": "skill",
+      "description": "Strategies for managing context window budget",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "cost-aware-llm-pipeline",
+      "category": "skill",
+      "description": "Build cost-optimized LLM processing pipelines",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "create-architecture-documentation",
+      "category": "skill",
+      "description": "Generate architecture documentation from codebase",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "create-prd",
+      "category": "skill",
+      "description": "Generate a product requirements document",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "cribbage-scoring",
+      "category": "skill",
+      "description": "Cribbage scoring rules guardrail",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "deploy-preview",
+      "category": "skill",
+      "description": "Deploy preview environments for testing",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "discuss",
+      "category": "skill",
+      "description": "Facilitate structured technical discussions",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "e2e-testing",
+      "category": "skill",
+      "description": "End-to-end testing patterns and best practices",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:api-design",
+      "category": "skill",
+      "description": "ECC API design patterns and guidelines",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:backend-patterns",
+      "category": "skill",
+      "description": "ECC backend architecture patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:coding-standards",
+      "category": "skill",
+      "description": "ECC coding standards enforcement",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:configure-ecc",
+      "category": "skill",
+      "description": "Configure Everything Claude Code settings",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:continuous-learning-v2",
+      "category": "skill",
+      "description": "ECC continuous learning from code patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:cost-aware-llm-pipeline",
+      "category": "skill",
+      "description": "ECC cost-optimized LLM pipeline patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:e2e",
+      "category": "skill",
+      "description": "ECC end-to-end testing framework",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:e2e-testing",
+      "category": "skill",
+      "description": "ECC end-to-end testing patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:eval-harness",
+      "category": "skill",
+      "description": "ECC evaluation harness for testing quality",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:evolve",
+      "category": "skill",
+      "description": "ECC self-evolution and improvement workflow",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:frontend-patterns",
+      "category": "skill",
+      "description": "ECC frontend architecture patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:instinct-export",
+      "category": "skill",
+      "description": "Export ECC learned instincts",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:instinct-import",
+      "category": "skill",
+      "description": "Import ECC learned instincts",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:instinct-status",
+      "category": "skill",
+      "description": "Check status of ECC learned instincts",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:iterative-retrieval",
+      "category": "skill",
+      "description": "ECC iterative retrieval-augmented generation",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:nutrient-document-processing",
+      "category": "skill",
+      "description": "ECC document processing for nutrient data",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:postgres-patterns",
+      "category": "skill",
+      "description": "ECC PostgreSQL design patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:security-review",
+      "category": "skill",
+      "description": "ECC security review patterns",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:security-scan",
+      "category": "skill",
+      "description": "ECC automated security scanning",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:skill-create",
+      "category": "skill",
+      "description": "Create new ECC skills",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:tdd",
+      "category": "skill",
+      "description": "ECC test-driven development workflow",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:tdd-workflow",
+      "category": "skill",
+      "description": "ECC TDD red-green-refactor workflow",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:verification-loop",
+      "category": "skill",
+      "description": "ECC pre-commit verification loop",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "explain-code",
+      "category": "skill",
+      "description": "Explain code logic and structure in plain language",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "exploratory-data-analysis",
+      "category": "skill",
+      "description": "Guided exploratory data analysis workflows",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "firecrawl:firecrawl-cli",
+      "category": "skill",
+      "description": "Firecrawl CLI for web scraping operations",
+      "namespace": "firecrawl",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "frontend-design:frontend-design",
+      "category": "skill",
+      "description": "Frontend design system and component patterns",
+      "namespace": "frontend-design",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "frontend-patterns",
+      "category": "skill",
+      "description": "Frontend architecture and design patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "game-theory-ai",
+      "category": "skill",
+      "description": "Game theory AI algorithms for cribbage",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "generate-tests",
+      "category": "skill",
+      "description": "Generate unit and integration tests for code",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "git-commit-helper",
+      "category": "skill",
+      "description": "Assisted git commit message generation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "glm-plan-usage:usage-query",
+      "category": "skill",
+      "description": "Query GLM plan usage statistics",
+      "namespace": "glm-plan-usage",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "glm-plan-usage:usage-query-skill",
+      "category": "skill",
+      "description": "GLM plan usage query skill",
+      "namespace": "glm-plan-usage",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "hook-development",
+      "category": "skill",
+      "description": "Develop Claude Code hooks for automation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "internet-archive-skills:ia",
+      "category": "skill",
+      "description": "Internet Archive search and retrieval",
+      "namespace": "internet-archive-skills",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "keybindings-help",
+      "category": "skill",
+      "description": "Claude Code keyboard shortcuts reference",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "matplotlib",
+      "category": "skill",
+      "description": "Matplotlib chart creation patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "mgrep:mgrep",
+      "category": "skill",
+      "description": "Enhanced multi-pattern grep search",
+      "namespace": "mgrep",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "modal",
+      "category": "skill",
+      "description": "Modal deployment and serverless patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "multimodal-blip-2",
+      "category": "skill",
+      "description": "BLIP-2 multimodal image understanding",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "multimodal-clip",
+      "category": "skill",
+      "description": "CLIP multimodal embedding and search",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "multimodal-llava",
+      "category": "skill",
+      "description": "LLaVA multimodal visual question answering",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "multimodal-stable-diffusion",
+      "category": "skill",
+      "description": "Stable Diffusion image generation patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "multimodal-whisper",
+      "category": "skill",
+      "description": "Whisper speech-to-text transcription",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "obsidian-vault-formatting",
+      "category": "skill",
+      "description": "Obsidian vault formatting and organization",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "playground:playground",
+      "category": "skill",
+      "description": "Interactive code playground environment",
+      "namespace": "playground",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "plotly",
+      "category": "skill",
+      "description": "Plotly interactive chart creation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "plugin-structure",
+      "category": "skill",
+      "description": "Claude Code plugin architecture and structure",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "postgres-best-practices",
+      "category": "skill",
+      "description": "PostgreSQL optimization and best practices",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "postgres-patterns",
+      "category": "skill",
+      "description": "PostgreSQL schema and query patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:academic-writing-style",
+      "category": "skill",
+      "description": "Academic writing style guide",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:build-dev-workflow",
+      "category": "skill",
+      "description": "Build development workflow automation",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:database-designer",
+      "category": "skill",
+      "description": "Database schema design skill",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:product-manager",
+      "category": "skill",
+      "description": "Product management workflow skill",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:solution-architect",
+      "category": "skill",
+      "description": "Solution architecture design skill",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:spw-arch",
+      "category": "skill",
+      "description": "Solution architecture workflow",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:spw-db",
+      "category": "skill",
+      "description": "Database design workflow",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:spw-prd",
+      "category": "skill",
+      "description": "Product requirements document workflow",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:spw-ui",
+      "category": "skill",
+      "description": "UI design workflow",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:spw-ui-pro-max",
+      "category": "skill",
+      "description": "Advanced UI/UX design workflow",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:spw-writing",
+      "category": "skill",
+      "description": "Technical writing workflow",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:ui-designer",
+      "category": "skill",
+      "description": "UI design patterns skill",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:ui-ux-pro-max",
+      "category": "skill",
+      "description": "Advanced UI/UX design skill",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "prompt-refiner",
+      "category": "skill",
+      "description": "Refine and improve LLM prompts",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "qutip",
+      "category": "skill",
+      "description": "QuTiP quantum computing simulation patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "rag-sentence-transformers",
+      "category": "skill",
+      "description": "RAG with sentence-transformers embeddings",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ralph-wiggum:cancel-ralph",
+      "category": "skill",
+      "description": "Cancel a running Ralph Wiggum task",
+      "namespace": "ralph-wiggum",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ralph-wiggum:help",
+      "category": "skill",
+      "description": "Ralph Wiggum help and usage guide",
+      "namespace": "ralph-wiggum",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ralph-wiggum:ralph-loop",
+      "category": "skill",
+      "description": "Run Ralph Wiggum continuous improvement loop",
+      "namespace": "ralph-wiggum",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "react-best-practices",
+      "category": "skill",
+      "description": "React component and hook best practices",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "refactor-code",
+      "category": "skill",
+      "description": "Guided code refactoring with safety checks",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "research-orchestration",
+      "category": "skill",
+      "description": "Orchestrate multi-agent research workflows",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "resume",
+      "category": "skill",
+      "description": "Resume work from a previous session",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "security-review",
+      "category": "skill",
+      "description": "Security audit and vulnerability review",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "senior-architect",
+      "category": "skill",
+      "description": "Senior architect system design guidance",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "senior-data-engineer",
+      "category": "skill",
+      "description": "Senior data engineer pipeline patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "senior-frontend",
+      "category": "skill",
+      "description": "Senior frontend engineer patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "skill-developer",
+      "category": "skill",
+      "description": "Create and maintain Claude Code skills",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "skill-judge:skill-judge",
+      "category": "skill",
+      "description": "Evaluate and grade Claude Code skills",
+      "namespace": "skill-judge",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "supabase-rls",
+      "category": "skill",
+      "description": "Supabase Row Level Security patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "supabase-schema-sync",
+      "category": "skill",
+      "description": "Sync Supabase schema with local types",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:brainstorming",
+      "category": "skill",
+      "description": "Structured brainstorming with multi-perspective analysis",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:dispatching-parallel-agents",
+      "category": "skill",
+      "description": "Dispatch and coordinate parallel agent tasks",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:executing-plans",
+      "category": "skill",
+      "description": "Execute structured implementation plans",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:finishing-a-development-branch",
+      "category": "skill",
+      "description": "Finalize and polish a development branch",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:receiving-code-review",
+      "category": "skill",
+      "description": "Process and address code review feedback",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:requesting-code-review",
+      "category": "skill",
+      "description": "Request and structure code review",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:subagent-driven-development",
+      "category": "skill",
+      "description": "Development driven by coordinated subagents",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:systematic-debugging",
+      "category": "skill",
+      "description": "Systematic debugging methodology",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:test-driven-development",
+      "category": "skill",
+      "description": "TDD workflow with red-green-refactor",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:using-git-worktrees",
+      "category": "skill",
+      "description": "Git worktree management for parallel work",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:using-superpowers",
+      "category": "skill",
+      "description": "Guide to using Superpowers plugin features",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:verification-before-completion",
+      "category": "skill",
+      "description": "Pre-completion verification checklist",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:writing-plans",
+      "category": "skill",
+      "description": "Write structured implementation plans",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:writing-skills",
+      "category": "skill",
+      "description": "Write and maintain Claude Code skills",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "tdd-workflow",
+      "category": "skill",
+      "description": "Test-driven development red-green-refactor cycle",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "test-engine",
+      "category": "skill",
+      "description": "Run engine test suite",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ui-design-system",
+      "category": "skill",
+      "description": "UI design system component guidelines",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ultra-think",
+      "category": "skill",
+      "description": "Deep extended thinking for complex problems",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "update-claudemd",
+      "category": "skill",
+      "description": "Update CLAUDE.md project instructions",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "update-docs",
+      "category": "skill",
+      "description": "Update project documentation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "verification-loop",
+      "category": "skill",
+      "description": "Pre-commit verification quality gate",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "webapp-testing",
+      "category": "skill",
+      "description": "Web application testing strategies",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "workflow-orchestrator",
+      "category": "skill",
+      "description": "Orchestrate multi-step development workflows",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "academic-researcher",
+      "category": "subagent",
+      "description": "Academic research and literature review specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "agent-sdk-dev:agent-sdk-verifier-py",
+      "category": "subagent",
+      "description": "Python agent SDK verification subagent",
+      "namespace": "agent-sdk-dev",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "agent-sdk-dev:agent-sdk-verifier-ts",
+      "category": "subagent",
+      "description": "TypeScript agent SDK verification subagent",
+      "namespace": "agent-sdk-dev",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "claude-code-guide",
+      "category": "subagent",
+      "description": "Claude Code usage and best practices guide",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "code-reviewer",
+      "category": "subagent",
+      "description": "Automated code review with quality feedback",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "computer-vision-engineer",
+      "category": "subagent",
+      "description": "Computer vision analysis specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "D3-1-sign-analyzer",
+      "category": "subagent",
+      "description": "Traffic sign detection and analysis",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "data-researcher",
+      "category": "subagent",
+      "description": "Data research and analysis specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "deployment-engineer",
+      "category": "subagent",
+      "description": "Deployment and infrastructure specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "diagram-architect",
+      "category": "subagent",
+      "description": "Architecture diagram creation specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "document-structure-analyzer",
+      "category": "subagent",
+      "description": "Document structure analysis specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "documentation-engineer",
+      "category": "subagent",
+      "description": "Technical documentation specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "error-detective",
+      "category": "subagent",
+      "description": "Error diagnosis and debugging specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:build-error-resolver",
+      "category": "subagent",
+      "description": "ECC build error resolution subagent",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:e2e-runner",
+      "category": "subagent",
+      "description": "ECC end-to-end test runner subagent",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:security-reviewer",
+      "category": "subagent",
+      "description": "ECC security review subagent",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "everything-claude-code:tdd-guide",
+      "category": "subagent",
+      "description": "ECC test-driven development guide subagent",
+      "namespace": "everything-claude-code",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Explore",
+      "category": "subagent",
+      "description": "Codebase exploration and discovery",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "general-purpose",
+      "category": "subagent",
+      "description": "General-purpose task execution subagent",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "git-workflow-manager",
+      "category": "subagent",
+      "description": "Git workflow and branching specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "glm-plan-usage:usage-query-agent",
+      "category": "subagent",
+      "description": "GLM plan usage query subagent",
+      "namespace": "glm-plan-usage",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "knowledge-synthesizer",
+      "category": "subagent",
+      "description": "Knowledge synthesis and integration specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "markdown-syntax-formatter",
+      "category": "subagent",
+      "description": "Markdown formatting and syntax specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "mobile-developer",
+      "category": "subagent",
+      "description": "Mobile development specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "multi-agent-coordinator",
+      "category": "subagent",
+      "description": "Coordinate multiple subagents on complex tasks",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Plan",
+      "category": "subagent",
+      "description": "Structured implementation planning",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:database-architect",
+      "category": "subagent",
+      "description": "Database architecture design subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:full-stack-product-builder",
+      "category": "subagent",
+      "description": "Full-stack product development subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:product-manager",
+      "category": "subagent",
+      "description": "Product management planning subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:solution-architect",
+      "category": "subagent",
+      "description": "Solution architecture design subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:technical-writer",
+      "category": "subagent",
+      "description": "Technical writing subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:ui-ux-designer",
+      "category": "subagent",
+      "description": "UI/UX design subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "product-workflow-agents:ui-ux-pro-max",
+      "category": "subagent",
+      "description": "Advanced UI/UX design subagent",
+      "namespace": "product-workflow-agents",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "quant-analyst",
+      "category": "subagent",
+      "description": "Quantitative analysis specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "react-patterns",
+      "category": "subagent",
+      "description": "React patterns and best practices advisor",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "report-generator",
+      "category": "subagent",
+      "description": "Report generation and formatting specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "research-analyst",
+      "category": "subagent",
+      "description": "Research analysis and insight extraction",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "research-coordinator",
+      "category": "subagent",
+      "description": "Coordinate multi-source research tasks",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "research-orchestrator",
+      "category": "subagent",
+      "description": "Orchestrate complex research workflows",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "research-synthesizer",
+      "category": "subagent",
+      "description": "Synthesize research findings into summaries",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "risk-manager",
+      "category": "subagent",
+      "description": "Risk assessment and mitigation specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "search-specialist",
+      "category": "subagent",
+      "description": "Advanced search and information retrieval",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "statusline-setup",
+      "category": "subagent",
+      "description": "Configure Claude Code status line display",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "superpowers:code-reviewer",
+      "category": "subagent",
+      "description": "Superpowers code review subagent",
+      "namespace": "superpowers",
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "task-decomposition-expert",
+      "category": "subagent",
+      "description": "Break complex tasks into manageable subtasks",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "task-distributor",
+      "category": "subagent",
+      "description": "Distribute tasks across multiple agents",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "technical-researcher",
+      "category": "subagent",
+      "description": "Technical research and documentation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "technical-writer",
+      "category": "subagent",
+      "description": "Technical writing and documentation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "test-engineer",
+      "category": "subagent",
+      "description": "Test engineering and quality assurance",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "traffic-sign-analyzer",
+      "category": "subagent",
+      "description": "Traffic sign analysis and classification",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "trend-analyst",
+      "category": "subagent",
+      "description": "Trend analysis and forecasting specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "typescript-pro",
+      "category": "subagent",
+      "description": "TypeScript expert and advanced patterns",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ui-ux-designer",
+      "category": "subagent",
+      "description": "UI/UX design specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ux-researcher",
+      "category": "subagent",
+      "description": "UX research and usability specialist",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "visual-analysis-ocr",
+      "category": "subagent",
+      "description": "Visual analysis and OCR text extraction",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "workflow-orchestrator",
+      "category": "subagent",
+      "description": "Multi-step workflow orchestration subagent",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "AskUserQuestion",
+      "category": "tool",
+      "description": "Ask the user clarifying questions with option selections",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Bash",
+      "category": "tool",
+      "description": "Execute shell commands in bash",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Edit",
+      "category": "tool",
+      "description": "Exact string replacements in files",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "EnterPlanMode",
+      "category": "tool",
+      "description": "Transition to plan mode for structured implementation planning",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "EnterWorktree",
+      "category": "tool",
+      "description": "Create an isolated git worktree for feature work",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ExitPlanMode",
+      "category": "tool",
+      "description": "Signal plan completion and request user approval",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Glob",
+      "category": "tool",
+      "description": "Fast file pattern matching",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Grep",
+      "category": "tool",
+      "description": "Content search using ripgrep with regex support",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ListMcpResourcesTool",
+      "category": "tool",
+      "description": "List available resources from configured MCP servers",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "NotebookEdit",
+      "category": "tool",
+      "description": "Edit Jupyter notebook cells",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Read",
+      "category": "tool",
+      "description": "Read file contents from local filesystem",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ReadMcpResourceTool",
+      "category": "tool",
+      "description": "Read a specific resource from an MCP server",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Skill",
+      "category": "tool",
+      "description": "Execute a skill within the main conversation",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Task",
+      "category": "tool",
+      "description": "Launch a subagent to perform work in parallel",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "TaskCreate",
+      "category": "tool",
+      "description": "Create a new background task",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "TaskGet",
+      "category": "tool",
+      "description": "Get the status and result of a task",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "TaskList",
+      "category": "tool",
+      "description": "List all active and completed tasks",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "TaskOutput",
+      "category": "tool",
+      "description": "Read output from a running background task",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "TaskStop",
+      "category": "tool",
+      "description": "Stop a running background task",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "TaskUpdate",
+      "category": "tool",
+      "description": "Update parameters of an existing task",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "ToolSearch",
+      "category": "tool",
+      "description": "Search for or select deferred tools to make them available",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "WebFetch",
+      "category": "tool",
+      "description": "Fetch and analyze web page content",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "WebSearch",
+      "category": "tool",
+      "description": "Search the web for current information",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    },
+    {
+      "name": "Write",
+      "category": "tool",
+      "description": "Write file contents to local filesystem",
+      "namespace": null,
+      "server": null,
+      "deferred": false
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 # SKUNK'D — Project Instructions
 
 ## Overview
-PWA cribbage game. React 18 + TypeScript + Vite + Tailwind + shadcn/ui frontend, Supabase backend, Gemini API for LLM features. Mobile-first.
+PWA cribbage game. React 19 + TypeScript 5.9 + Vite 7 + Tailwind v4 + shadcn/ui frontend, Supabase backend, Gemini API for LLM features. Mobile-first.
 
 ## Directory Structure
 ```
