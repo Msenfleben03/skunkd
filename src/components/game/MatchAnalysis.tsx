@@ -49,7 +49,7 @@ export function MatchAnalysis({
         stats: `Player ${playerScore} pts vs Opponent ${opponentScore} pts.`,
       });
       setAnalysis(text);
-    } catch (e) {
+    } catch {
       setError('Analysis unavailable. Try again.');
     } finally {
       setLoading(false);
@@ -104,8 +104,7 @@ export function MatchAnalysis({
                     aria-label={`Cribbage Grade: ${grade}`}
                   >
                     <span
-                      className="text-3xl font-black text-gold"
-                      style={{ fontFamily: "'Playfair Display', serif" }}
+                      className="text-3xl font-black text-gold font-display"
                     >
                       {grade}
                     </span>

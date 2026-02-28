@@ -16,14 +16,14 @@ describe('Expectimax pegging performance', () => {
   it('20 determinizations, depth 3 completes in <50ms', () => {
     const gameState = createGame(2);
     const start = performance.now();
-    expectimaxPeggingPlay(gameState, 0, 0, 20, 3, 42);
+    expectimaxPeggingPlay(gameState, 20, 3, 42);
     expect(performance.now() - start).toBeLessThan(50);
   });
 
   it('50 determinizations, depth 5 completes in <200ms', () => {
     const gameState = createGame(2);
     const start = performance.now();
-    expectimaxPeggingPlay(gameState, 0, 0, 50, 5, 42);
+    expectimaxPeggingPlay(gameState, 50, 5, 42);
     expect(performance.now() - start).toBeLessThan(200);
   });
 

@@ -102,8 +102,8 @@ export function PeggingScore({
             'font-black tabular-nums leading-none',
             isBig ? 'text-3xl' : 'text-2xl',
             isThirtyone ? 'text-skunk-green' : 'text-gold',
+            'font-display',
           )}
-          style={{ fontFamily: "'Playfair Display', serif" }}
           aria-label={`${total} points`}
         >
           +{total}

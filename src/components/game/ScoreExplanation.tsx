@@ -38,7 +38,7 @@ export function ScoreExplanation({ label, cards, starter, scoring, className }: 
       });
       setExplanation(text);
       setUsed(true);
-    } catch (e) {
+    } catch {
       setError('Explanation unavailable. Try again later.');
     } finally {
       setLoading(false);

@@ -1,5 +1,6 @@
 import type { Card } from './types';
-import { cardValue, RANKS, SUITS } from './types';
+import { cardValue } from './types';
+import { createDeck } from './deck';
 import { scoreHand } from './scoring';
 import { lookupCribEV } from './crib-ev';
 import { optimalPeggingPlay } from './optimal';
@@ -58,13 +59,7 @@ export function aiSelectDiscard(
   isDealer: boolean,
 ): DiscardResult {
   const handIds = new Set(hand.map(c => c.id));
-
-  const fullDeck: Card[] = [];
-  for (const rank of RANKS) {
-    for (const suit of SUITS) {
-      fullDeck.push({ rank, suit, id: `${rank}-${suit}` });
-    }
-  }
+  const fullDeck = createDeck();
 
   let bestScore = -Infinity;
   let bestDiscard: [Card, Card] = [hand[0], hand[1]];

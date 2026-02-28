@@ -33,9 +33,11 @@ export interface DealAnimationProps {
  */
 export function DealAnimation({ cards, onComplete, className }: DealAnimationProps) {
   const [revealedCount, setRevealedCount] = useState(0);
-  // Track whether cleanup has run so onComplete fires only once
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     if (cards.length === 0) {

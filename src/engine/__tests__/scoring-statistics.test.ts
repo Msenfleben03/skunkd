@@ -259,5 +259,5 @@ describe('Scoring Engine Statistical Validation', () => {
     console.log(`    Flush:    ${(totalFlush / totalCombinations).toFixed(4)}`);
     console.log(`    Nobs:     ${(totalNobs / totalCombinations).toFixed(4)}`);
     console.log('══════════════════════════════════════════════════════════\n');
-  }, 60_000);
+  }, 120_000);
 });

@@ -52,8 +52,7 @@ export function ScorePanel({
         />
         <div className="flex items-baseline gap-1.5">
           <span
-            className="text-cream font-bold tabular-nums text-sm"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="text-cream font-bold tabular-nums text-sm font-display"
           >
             You:&nbsp;{playerScore}
           </span>
@@ -85,8 +84,7 @@ export function ScorePanel({
         )}
         <div className="flex items-baseline gap-1.5">
           <span
-            className="text-cream font-bold tabular-nums text-sm"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="text-cream font-bold tabular-nums text-sm font-display"
           >
             Opp:&nbsp;{opponentScore}
           </span>

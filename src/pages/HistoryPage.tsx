@@ -303,12 +303,8 @@ export function HistoryPage() {
     });
   };
 
-  const bgStyle = {
-    background: 'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center py-8 px-4" style={bgStyle}>
+    <div className="min-h-screen flex flex-col items-center py-8 px-4 bg-felt-gradient">
       {/* Header */}
       <div className="w-full max-w-sm flex items-center justify-between mb-6">
         <button
@@ -319,8 +315,7 @@ export function HistoryPage() {
           &larr; Back
         </button>
         <h1
-          className="text-lg font-black text-gold"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          className="text-lg font-black text-gold font-display"
         >
           History
         </h1>
@@ -329,8 +324,7 @@ export function HistoryPage() {
 
       {/* Subtitle */}
       <p
-        className="text-cream/40 text-xs italic text-center max-w-xs mb-6"
-        style={{ fontFamily: "'Playfair Display', serif" }}
+        className="text-cream/40 text-xs italic text-center max-w-xs mb-6 font-display"
       >
         400 years of cards, cons, and submarines.
       </p>

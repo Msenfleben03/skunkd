@@ -33,7 +33,7 @@ export function HandReview({ handNumber, playerStats, opponentStats, className }
         oppCrib: opponentStats.crib,
       });
       setReview(text);
-    } catch (e) {
+    } catch {
       setError('Coach is off-duty. Try again later.');
     } finally {
       setLoading(false);

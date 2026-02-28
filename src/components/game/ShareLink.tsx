@@ -56,8 +56,7 @@ export function ShareLink({ inviteCode, className }: ShareLinkProps) {
         )}
       >
         <span
-          className="text-3xl font-black tracking-[0.2em] text-gold"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          className="text-3xl font-black tracking-[0.2em] text-gold font-display"
           data-testid="invite-code"
         >
           {inviteCode}

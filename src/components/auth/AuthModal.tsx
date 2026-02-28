@@ -65,8 +65,7 @@ export function AuthModal({ onClose, upgradeMode = false }: AuthModalProps) {
         <div className="flex items-start justify-between mb-6">
           <div>
             <h2
-              className="text-xl font-black text-cream"
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              className="text-xl font-black text-cream font-display"
             >
               {upgradeMode ? "Save Your Progress" : "Join SKUNK'D"}
             </h2>
@@ -122,12 +121,11 @@ export function AuthModal({ onClose, upgradeMode = false }: AuthModalProps) {
               onClick={handleGuest}
               disabled={auth.loading}
               className={cn(
-                'w-full py-3.5 rounded-xl font-black text-lg',
+                'w-full py-3.5 rounded-xl font-black text-lg font-display',
                 'bg-gold text-skunk-dark',
                 'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
               )}
-              style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {auth.loading ? 'Loading…' : 'Deal Me In'}
             </button>
@@ -180,8 +178,7 @@ export function AuthModal({ onClose, upgradeMode = false }: AuthModalProps) {
             <button
               type="submit"
               disabled={auth.loading}
-              className={submitBtnClass}
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              className={cn(submitBtnClass, 'font-display')}
               data-testid="auth-submit-btn"
             >
               {auth.loading ? 'Signing in…' : 'Sign In'}
@@ -223,8 +220,7 @@ export function AuthModal({ onClose, upgradeMode = false }: AuthModalProps) {
             <button
               type="submit"
               disabled={auth.loading}
-              className={submitBtnClass}
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              className={cn(submitBtnClass, 'font-display')}
               data-testid="auth-submit-btn"
             >
               {auth.loading

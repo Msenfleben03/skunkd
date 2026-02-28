@@ -155,6 +155,16 @@ body {
   }
 }
 
+/* ── SKUNK'D Shared Utilities ─────────────────────────────────────────── */
+
+@utility bg-felt-gradient {
+  background: radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%);
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
 /* ── SKUNK'D Animation Keyframes ──────────────────────────────────────── */
 
 @keyframes skunk-idle {

@@ -16,7 +16,10 @@ export function TurnTimer({ durationSecs, onExpire, active, className }: TurnTim
   const [remaining, setRemaining] = useState(durationSecs);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onExpireRef = useRef(onExpire);
-  onExpireRef.current = onExpire;
+
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   // Reset when activated
   useEffect(() => {
@@ -89,8 +92,8 @@ export function TurnTimer({ durationSecs, onExpire, active, className }: TurnTim
           'text-2xl font-black tabular-nums w-8',
           isCritical ? 'text-red-400' : isUrgent ? 'text-amber-400' : 'text-gold',
           isCritical && 'animate-pulse',
+          'font-display',
         )}
-        style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {remaining}
       </span>

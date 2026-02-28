@@ -58,12 +58,8 @@ export function StatsPage() {
     return () => { cancelled = true; };
   }, [userId, authLoading]);
 
-  const bgStyle = {
-    background: 'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
-  };
-
   return (
-    <div className="min-h-screen flex flex-col items-center py-8 px-4" style={bgStyle}>
+    <div className="min-h-screen flex flex-col items-center py-8 px-4 bg-felt-gradient">
       {/* Header */}
       <div className="w-full max-w-sm flex items-center justify-between mb-6">
         <button
@@ -74,8 +70,7 @@ export function StatsPage() {
           &larr; Back
         </button>
         <h1
-          className="text-lg font-black text-gold"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          className="text-lg font-black text-gold font-display"
         >
           Your Stats
         </h1>
@@ -137,8 +132,7 @@ export function StatsPage() {
             <div className="flex items-baseline justify-between">
               <div>
                 <span
-                  className="text-3xl font-black text-gold tabular-nums"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
+                  className="text-3xl font-black text-gold tabular-nums font-display"
                 >
                   <span data-testid="stats-wins">{stats.wins}</span>
                   <span className="text-cream/30 mx-1 text-xl">/</span>

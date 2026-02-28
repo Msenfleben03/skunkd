@@ -92,10 +92,9 @@ export function GameOver({
         {/* Headline */}
         <h1
           className={cn(
-            'text-5xl font-black tracking-tight',
+            'text-5xl font-black tracking-tight font-display',
             humanWon ? 'text-gold' : 'text-skunk-green',
           )}
-          style={{ fontFamily: "'Playfair Display', serif" }}
           aria-label={humanWon ? 'You win' : 'You lost'}
         >
           {headline}
