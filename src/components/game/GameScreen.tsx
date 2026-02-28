@@ -62,7 +62,6 @@ const SHOW_PHASES = new Set([
 export function GameScreen({ className }: { className?: string }) {
   const [gameMode, setGameMode] = useState<'local' | 'online'>('local');
   const [localPlayerSeat, setLocalPlayerSeat] = useState<0 | 1>(0);
-  const [, setOpponentUserId] = useState<string | null>(null);
   const [pendingDealData, setPendingDealData] = useState<PendingDealData | null>(null);
   const [localReadyNextHand, setLocalReadyNextHand] = useState(false);
   const [opponentReadyNextHand, setOpponentReadyNextHand] = useState(false);
@@ -125,8 +124,6 @@ export function GameScreen({ className }: { className?: string }) {
       setOnlineStep(null);
       setGameMode('online');
       setLocalPlayerSeat(1); // joiner is always seat 1
-      const opponent = players.find(p => p.user_id !== auth.user?.id);
-      setOpponentUserId(opponent?.user_id ?? null);
       // Clear location state to prevent re-triggering on re-render
       window.history.replaceState({}, '');
     }
@@ -156,8 +153,6 @@ export function GameScreen({ className }: { className?: string }) {
             .order('seat');
 
           if (players && players.length >= 2) {
-            const opponent = players.find(p => p.user_id !== auth.user?.id);
-            setOpponentUserId(opponent?.user_id ?? null);
             setGameMode('online');
             setLocalPlayerSeat(0); // creator is seat 0
             setOnlineStep(null); // exit waiting screen

@@ -88,7 +88,7 @@ describe('GameScreen', () => {
 
   it('shows "Deal Me In" button on start screen', () => {
     render(<GameScreen />);
-    expect(screen.getByTestId('deal-me-in-btn').textContent).toContain('Deal Me In');
+    expect(screen.getByTestId('deal-me-in-btn').textContent).toContain("How 'Bout a Quick Game?");
   });
 
   it('transitions to game screen after clicking Deal Me In', async () => {

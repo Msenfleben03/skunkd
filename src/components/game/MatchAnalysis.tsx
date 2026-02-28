@@ -49,7 +49,7 @@ export function MatchAnalysis({
         stats: `Player ${playerScore} pts vs Opponent ${opponentScore} pts.`,
       });
       setAnalysis(text);
-    } catch (e) {
+    } catch {
       setError('Analysis unavailable. Try again.');
     } finally {
       setLoading(false);

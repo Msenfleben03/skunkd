@@ -2,11 +2,9 @@ import type { Card, Rank } from './types';
 import { RANKS, SUITS } from './types';
 import { scoreHand } from './scoring';
 
-const RANK_ORDER: readonly Rank[] = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-
 function sortedRankPair(r1: Rank, r2: Rank): string {
-  const i1 = RANK_ORDER.indexOf(r1);
-  const i2 = RANK_ORDER.indexOf(r2);
+  const i1 = RANKS.indexOf(r1);
+  const i2 = RANKS.indexOf(r2);
   return i1 <= i2 ? `${r1}-${r2}` : `${r2}-${r1}`;
 }
 
