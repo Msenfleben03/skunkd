@@ -452,18 +452,36 @@ describe('LOAD_ONLINE_DEAL', () => {
     expect(result.crib).toHaveLength(0);
   });
 
-  it('resets decisionLog to empty', () => {
-    const state = makeState({ phase: 'DEALING' });
-
-    const result = gameReducer(state, {
-      type: 'LOAD_ONLINE_DEAL',
-      hands: [hand0, hand1],
-      starter: starterCard,
-      dealerIndex: 0,
-      handNumber: 1,
+  it('preserves existing decisionLog entries when loading online deal', () => {
+    const prior = makeState({
+      phase: 'DEALING',
+      decisionLog: [
+        {
+          type: 'discard',
+          hand: [card('A', 'H'), card('2', 'H'), card('3', 'H'), card('4', 'H'), card('5', 'H'), card('6', 'H')],
+          playerChoice: [card('A', 'H'), card('2', 'H')],
+          isDealer: false,
+          handIndex: 0,
+        },
+      ],
     });
-
-    expect(result.decisionLog).toHaveLength(0);
+    const newHand0: Card[] = [
+      card('3', 'H'), card('4', 'H'), card('5', 'H'),
+      card('6', 'H'), card('7', 'H'), card('8', 'H'),
+    ];
+    const newHand1: Card[] = [
+      card('9', 'S'), card('10', 'S'), card('J', 'S'),
+      card('Q', 'S'), card('K', 'S'), card('A', 'S'),
+    ];
+    const next = gameReducer(prior, {
+      type: 'LOAD_ONLINE_DEAL',
+      hands: [newHand0, newHand1],
+      starter: card('2', 'D'),
+      dealerIndex: 0,
+      handNumber: 2,
+    });
+    expect(next.decisionLog).toHaveLength(1);
+    expect(next.decisionLog[0].type).toBe('discard');
   });
 
   it('resets handStats to zero for all players', () => {

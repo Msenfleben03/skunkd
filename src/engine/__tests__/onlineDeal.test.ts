@@ -85,7 +85,7 @@ describe('LOAD_ONLINE_DEAL', () => {
     expect(result.handNumber).toBe(2);
   });
 
-  it('resets crib, handStats, decisionLog, and pegging', () => {
+  it('resets crib, handStats, and pegging', () => {
     const state = makeStartState();
     const result = gameReducer(state, {
       type: 'LOAD_ONLINE_DEAL',
@@ -99,7 +99,6 @@ describe('LOAD_ONLINE_DEAL', () => {
       { pegging: 0, hand: 0, crib: 0 },
       { pegging: 0, hand: 0, crib: 0 },
     ]);
-    expect(result.decisionLog).toEqual([]);
     expect(result.pegging.count).toBe(0);
     // Non-dealer plays first in pegging
     expect(result.pegging.currentPlayerIndex).toBe(1); // dealer=0, so non-dealer=1

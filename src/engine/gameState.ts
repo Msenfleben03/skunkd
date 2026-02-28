@@ -516,7 +516,6 @@ function handleLoadOnlineDeal(
     pegging: emptyPegging(state.players.length, action.dealerIndex),
     handStats: state.handStats.map(() => ({ pegging: 0, hand: 0, crib: 0 })),
     winner: null,
-    decisionLog: [],
   };
 }
 
