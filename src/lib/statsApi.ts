@@ -17,6 +17,9 @@ export interface RecordGameResultParams {
   optimalDiscards?: number;
   totalDiscards?: number;
   evDeficit?: number;
+  /** Online game ID — when provided, also persists final score to game_players */
+  gameId?: string;
+  finalScore?: number;
 }
 
 export async function recordGameResult(params: RecordGameResultParams): Promise<void> {
@@ -34,6 +37,10 @@ export async function recordGameResult(params: RecordGameResultParams): Promise<
     p_optimal_discards: params.optimalDiscards ?? 0,
     p_total_discards: params.totalDiscards ?? 0,
     p_ev_deficit: params.evDeficit ?? 0,
+    ...(params.gameId !== undefined && {
+      p_game_id: params.gameId,
+      p_final_score: params.finalScore ?? 0,
+    }),
   });
   if (error) throw new Error(`Failed to record game result: ${error.message}`);
 }

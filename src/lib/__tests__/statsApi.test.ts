@@ -64,6 +64,33 @@ describe('recordGameResult', () => {
       recordGameResult({ won: true, playerScore: 121, opponentScore: 90 })
     ).rejects.toThrow('Failed to record game result: DB error');
   });
+
+  it('passes p_game_id and p_final_score to RPC when gameId is provided', async () => {
+    mockRpc.mockResolvedValueOnce({ error: null });
+
+    await recordGameResult({
+      won: true,
+      playerScore: 121,
+      opponentScore: 80,
+      gameId: 'game-abc',
+      finalScore: 121,
+    });
+
+    expect(mockRpc).toHaveBeenCalledWith('record_game_result', expect.objectContaining({
+      p_game_id: 'game-abc',
+      p_final_score: 121,
+    }));
+  });
+
+  it('omits p_game_id and p_final_score from RPC when gameId is not provided', async () => {
+    mockRpc.mockResolvedValueOnce({ error: null });
+
+    await recordGameResult({ won: false, playerScore: 80, opponentScore: 121 });
+
+    const callArgs = mockRpc.mock.calls[0][1] as Record<string, unknown>;
+    expect(callArgs).not.toHaveProperty('p_game_id');
+    expect(callArgs).not.toHaveProperty('p_final_score');
+  });
 });
 
 describe('fetchStats', () => {
