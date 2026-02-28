@@ -1,4 +1,4 @@
-import type { Card, GameState, Phase, PeggingState, ScoreBreakdown } from '@/engine/types';
+import type { Card, GameState, Phase, ScoreBreakdown } from '@/engine/types';
 import { cn } from '@/lib/utils';
 import { ScorePanel } from './ScorePanel';
 import { CribbageBoard } from './CribbageBoard';

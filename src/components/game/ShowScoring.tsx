@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { type Card, type ScoreBreakdown } from '@/engine/types';
 import { cn } from '@/lib/utils';
 import { GameCard } from './GameCard';
@@ -38,7 +39,11 @@ export function ShowScoring({
 }: ShowScoringProps) {
   const nonZeroRows = SCORE_ROWS.filter(r => scoring[r.key] > 0);
   const isZeroHand = scoring.total === 0;
-  const zeroQuip = ZERO_HAND_QUIPS[Math.floor(Math.random() * ZERO_HAND_QUIPS.length)];
+  const zeroQuip = useMemo(
+    () => ZERO_HAND_QUIPS[Math.floor(Math.random() * ZERO_HAND_QUIPS.length)],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   return (
     <div

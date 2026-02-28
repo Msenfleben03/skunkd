@@ -16,7 +16,10 @@ export function TurnTimer({ durationSecs, onExpire, active, className }: TurnTim
   const [remaining, setRemaining] = useState(durationSecs);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onExpireRef = useRef(onExpire);
-  onExpireRef.current = onExpire;
+
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  }, [onExpire]);
 
   // Reset when activated
   useEffect(() => {
