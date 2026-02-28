@@ -9,6 +9,8 @@ export interface GameOverProps {
   /** Opponent's final score */
   opponentScore: number;
   onPlayAgain: () => void;
+  /** Initiate a rematch (online mode only) */
+  onRematch?: () => void;
   /** Return to start screen / main menu */
   onMainMenu?: () => void;
   /** Navigate to post-game stats summary */
@@ -50,6 +52,7 @@ export function GameOver({
   playerScore,
   opponentScore,
   onPlayAgain,
+  onRematch,
   onMainMenu,
   onViewStats,
   handsPlayed,
@@ -164,6 +167,20 @@ export function GameOver({
           >
             Play Again
           </button>
+          {onRematch && (
+            <button
+              className={cn(
+                'w-full rounded-xl py-3.5 px-6 font-bold text-base',
+                'transition-all duration-150 active:scale-[0.97]',
+                'bg-skunk-green/20 text-skunk-green border border-skunk-green/40',
+                'hover:bg-skunk-green/30',
+              )}
+              onClick={onRematch}
+              data-testid="rematch-btn"
+            >
+              Rematch
+            </button>
+          )}
           {onViewStats && (
             <button
               className={cn(

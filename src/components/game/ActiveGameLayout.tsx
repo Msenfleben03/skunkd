@@ -48,6 +48,7 @@ export interface ActiveGameLayoutProps {
   onReturnToMenu: () => void;
   toggleCardSelect: (cardId: string) => void;
   onViewStats: () => void;
+  onRematch?: () => void;
   // Online
   gameMode: 'local' | 'online';
   opponentPresence: string;
@@ -74,6 +75,7 @@ export function ActiveGameLayout({
   onReturnToMenu,
   toggleCardSelect,
   onViewStats,
+  onRematch,
   gameMode,
   opponentPresence,
   activeOnlineGameId,
@@ -243,6 +245,7 @@ export function ActiveGameLayout({
           playerScore={player.score}
           opponentScore={opponent.score}
           onPlayAgain={onNewGame}
+          onRematch={onRematch}
           onMainMenu={onReturnToMenu}
           onViewStats={onViewStats}
           handsPlayed={handNumber}

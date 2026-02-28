@@ -25,7 +25,8 @@ type OnlineBroadcast =
   | { type: 'joiner_ready'; joinerHand: Card[] }
   | { type: 'game_action'; action: GameAction }
   | { type: 'game_complete'; winnerIndex: number }
-  | { type: 'ready_next_hand' };
+  | { type: 'ready_next_hand' }
+  | { type: 'rematch'; inviteCode: string };
 
 interface PendingDealData {
   myHand: Card[];
@@ -234,6 +235,13 @@ export function GameScreen({ className }: { className?: string }) {
         case 'game_complete': {
           break;
         }
+
+        case 'rematch': {
+          if (msg.inviteCode) {
+            navigate(`/join/${msg.inviteCode}`);
+          }
+          break;
+        }
       }
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -384,6 +392,22 @@ export function GameScreen({ className }: { className?: string }) {
     returnToMenu();
   }, [returnToMenu]);
 
+  const handleRematch = useCallback(async () => {
+    if (!activeOnlineGameId) return;
+    try {
+      const { game } = await createGame('vs_human');
+      channel.broadcastAction({ type: 'rematch', inviteCode: game.invite_code });
+      newGame();
+      setGameMode('online');
+      setLocalPlayerSeat(0);
+      setPendingGame({ gameId: game.id, inviteCode: game.invite_code });
+      setActiveOnlineGameId(game.id);
+      setOnlineStep('waiting');
+    } catch {
+      handleReturnToMenu();
+    }
+  }, [activeOnlineGameId, channel, newGame, handleReturnToMenu]);
+
   const handleViewStats = useCallback(() => {
     navigate('/game-stats', {
       state: {
@@ -452,6 +476,7 @@ export function GameScreen({ className }: { className?: string }) {
       onReturnToMenu={handleReturnToMenu}
       toggleCardSelect={(cardId: string) => toggleCardSelect(cardId)}
       onViewStats={handleViewStats}
+      onRematch={gameMode === 'online' ? handleRematch : undefined}
       gameMode={gameMode}
       opponentPresence={channel.opponentPresence}
       activeOnlineGameId={activeOnlineGameId}

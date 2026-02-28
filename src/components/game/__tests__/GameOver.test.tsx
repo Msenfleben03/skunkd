@@ -72,4 +72,45 @@ describe('GameOver', () => {
     render(<GameOver winnerIndex={0} playerScore={121} opponentScore={60} onPlayAgain={noop} />);
     expect(screen.getByTestId('double-skunk-banner')).toBeInTheDocument();
   });
+
+  it('renders Rematch button when onRematch prop is provided', () => {
+    render(
+      <GameOver
+        winnerIndex={0}
+        playerScore={121}
+        opponentScore={80}
+        onPlayAgain={vi.fn()}
+        onRematch={vi.fn()}
+      />
+    );
+    expect(screen.getByTestId('rematch-btn')).toBeInTheDocument();
+    expect(screen.getByTestId('rematch-btn')).toHaveTextContent('Rematch');
+  });
+
+  it('calls onRematch when Rematch button is clicked', () => {
+    const onRematch = vi.fn();
+    render(
+      <GameOver
+        winnerIndex={0}
+        playerScore={121}
+        opponentScore={80}
+        onPlayAgain={vi.fn()}
+        onRematch={onRematch}
+      />
+    );
+    fireEvent.click(screen.getByTestId('rematch-btn'));
+    expect(onRematch).toHaveBeenCalledOnce();
+  });
+
+  it('does not render Rematch button when onRematch is not provided', () => {
+    render(
+      <GameOver
+        winnerIndex={0}
+        playerScore={121}
+        opponentScore={80}
+        onPlayAgain={vi.fn()}
+      />
+    );
+    expect(screen.queryByTestId('rematch-btn')).not.toBeInTheDocument();
+  });
 });
