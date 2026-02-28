@@ -71,16 +71,16 @@ function StatRow({
     <div className="space-y-0.5">
       <div className="flex justify-between items-baseline text-sm">
         <span
-          className="font-bold tabular-nums"
-          style={{ color: '#d4a843', fontFamily: "'Playfair Display', serif" }}
+          className="font-bold tabular-nums font-display"
+          style={{ color: '#d4a843' }}
           aria-label={`Your ${label}: ${playerVal}`}
         >
           {playerVal}
         </span>
         <span className="text-[10px] text-cream/40 uppercase tracking-widest">{label}</span>
         <span
-          className="font-bold tabular-nums"
-          style={{ color: '#39FF14', fontFamily: "'Playfair Display', serif" }}
+          className="font-bold tabular-nums font-display"
+          style={{ color: '#39FF14' }}
           aria-label={`Opponent ${label}: ${opponentVal}`}
         >
           {opponentVal}
@@ -125,8 +125,7 @@ export function HandSummary({
       <div className="text-center space-y-0.5">
         <p className="text-[10px] text-cream/40 uppercase tracking-[0.2em]">Round</p>
         <h2
-          className="text-4xl font-black text-gold"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          className="text-4xl font-black text-gold font-display"
         >
           {handNumber}
         </h2>
@@ -150,16 +149,16 @@ export function HandSummary({
           aria-label="Total scores"
         >
           <span
-            className="text-3xl font-black tabular-nums"
-            style={{ color: '#d4a843', fontFamily: "'Playfair Display', serif" }}
+            className="text-3xl font-black tabular-nums font-display"
+            style={{ color: '#d4a843' }}
             aria-label={`Your total score: ${playerTotalScore}`}
           >
             {playerTotalScore}
           </span>
           <span className="text-[10px] text-cream/30 uppercase tracking-widest">Total</span>
           <span
-            className="text-3xl font-black tabular-nums"
-            style={{ color: '#39FF14', fontFamily: "'Playfair Display', serif" }}
+            className="text-3xl font-black tabular-nums font-display"
+            style={{ color: '#39FF14' }}
             aria-label={`Opponent total score: ${opponentTotalScore}`}
           >
             {opponentTotalScore}

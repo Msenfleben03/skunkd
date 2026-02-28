@@ -104,8 +104,7 @@ export function ChatPanel({
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 flex-shrink-0">
         <span
-          className="text-sm font-bold text-cream/80"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          className="text-sm font-bold text-cream/80 font-display"
         >
           Trash Talk
         </span>

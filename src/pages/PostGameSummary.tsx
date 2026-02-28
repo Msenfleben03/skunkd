@@ -123,8 +123,8 @@ export function PostGameSummary() {
       <div className="max-w-sm mx-auto px-4 py-8 flex flex-col gap-4">
         {/* Heading */}
         <h1
-          className="text-2xl font-black text-center"
-          style={{ color: '#d4a843', fontFamily: "'Playfair Display', serif" }}
+          className="text-2xl font-black text-center font-display"
+          style={{ color: '#d4a843' }}
         >
           Game Summary
         </h1>

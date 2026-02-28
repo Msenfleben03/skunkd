@@ -110,7 +110,6 @@ export function PlayArea({
               isMax && 'text-skunk-green',
               !isDanger && !isMax && 'text-gold',
             )}
-            style={{ fontFamily: "'Playfair Display', serif" }}
           >
             {pegging.count}
           </div>

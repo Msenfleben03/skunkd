@@ -51,8 +51,7 @@ export function ShowScoring({
     >
       {/* Header */}
       <h3
-        className="text-lg font-bold text-gold tracking-wide"
-        style={{ fontFamily: "'Playfair Display', serif" }}
+        className="text-lg font-bold text-gold tracking-wide font-display"
       >
         {label}
       </h3>
@@ -87,8 +86,7 @@ export function ShowScoring({
               >
                 <span className="text-cream/70">{row.label}</span>
                 <span
-                  className="font-bold tabular-nums text-cream"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
+                  className="font-bold tabular-nums text-cream font-display"
                   aria-label={`${row.label}: ${scoring[row.key]} points`}
                 >
                   {scoring[row.key]}
@@ -106,8 +104,7 @@ export function ShowScoring({
         >
           <span className="text-gold font-bold text-sm tracking-wide">Total</span>
           <span
-            className="text-gold font-black text-xl tabular-nums"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            className="text-gold font-black text-xl tabular-nums font-display"
           >
             {scoring.total}
           </span>

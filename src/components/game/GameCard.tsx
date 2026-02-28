@@ -66,8 +66,8 @@ export function GameCard({
         {/* SKUNK'D watermark */}
         <div className="absolute inset-0 flex items-center justify-center">
           <span
-            className="font-bold tracking-widest select-none text-white/20 rotate-90"
-            style={{ fontFamily: "'Playfair Display', serif", fontSize: d.watermarkFont, letterSpacing: '0.18em' }}
+            className="font-bold tracking-widest select-none text-white/20 rotate-90 font-display"
+            style={{ fontSize: d.watermarkFont, letterSpacing: '0.18em' }}
           >
             SKUNK'D
           </span>
@@ -109,8 +109,8 @@ export function GameCard({
     >
       {/* Top-left guard */}
       <div
-        className="absolute leading-none"
-        style={{ top: d.guardTop, left: d.guardLeft, color: textColor, fontFamily: "'Playfair Display', serif" }}
+        className="absolute leading-none font-display"
+        style={{ top: d.guardTop, left: d.guardLeft, color: textColor }}
       >
         <div style={{ fontSize: d.rankFont, fontWeight: 700 }}>{card.rank}</div>
         <div style={{ fontSize: d.suitFont, marginTop: -1 }}>{suitSym}</div>
@@ -126,8 +126,8 @@ export function GameCard({
 
       {/* Bottom-right guard (rotated 180°) */}
       <div
-        className="absolute leading-none rotate-180"
-        style={{ bottom: d.guardTop, right: d.guardLeft, color: textColor, fontFamily: "'Playfair Display', serif" }}
+        className="absolute leading-none rotate-180 font-display"
+        style={{ bottom: d.guardTop, right: d.guardLeft, color: textColor }}
       >
         <div style={{ fontSize: d.rankFont, fontWeight: 700 }}>{card.rank}</div>
         <div style={{ fontSize: d.suitFont, marginTop: -1 }}>{suitSym}</div>

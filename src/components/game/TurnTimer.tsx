@@ -89,8 +89,8 @@ export function TurnTimer({ durationSecs, onExpire, active, className }: TurnTim
           'text-2xl font-black tabular-nums w-8',
           isCritical ? 'text-red-400' : isUrgent ? 'text-amber-400' : 'text-gold',
           isCritical && 'animate-pulse',
+          'font-display',
         )}
-        style={{ fontFamily: "'Playfair Display', serif" }}
       >
         {remaining}
       </span>

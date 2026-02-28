@@ -47,11 +47,7 @@ export function Join() {
 
   return (
     <div
-      className="h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{
-        background:
-          'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
-      }}
+      className="h-screen flex flex-col items-center justify-center relative overflow-hidden bg-felt-gradient"
     >
       {/* Felt texture */}
       <div
@@ -73,8 +69,7 @@ export function Join() {
         />
 
         <h1
-          className="text-2xl font-black text-gold mb-2"
-          style={{ fontFamily: "'Playfair Display', serif" }}
+          className="text-2xl font-black text-gold mb-2 font-display"
         >
           {status === 'error' ? 'Oops.' : "You've Been Challenged"}
         </h1>
@@ -91,8 +86,7 @@ export function Join() {
             {code && (
               <div className="bg-white/5 border border-white/10 rounded-xl py-3 px-6 mb-6">
                 <span
-                  className="text-2xl font-black tracking-[0.2em] text-gold"
-                  style={{ fontFamily: "'Playfair Display', serif" }}
+                  className="text-2xl font-black tracking-[0.2em] text-gold font-display"
                 >
                   {code.toUpperCase()}
                 </span>
@@ -110,12 +104,11 @@ export function Join() {
               onClick={handleJoin}
               disabled={status === 'joining' || auth.loading}
               className={cn(
-                'w-full py-4 rounded-xl font-black text-lg',
+                'w-full py-4 rounded-xl font-black text-lg font-display',
                 'bg-gold text-skunk-dark',
                 'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
                 'disabled:opacity-60 disabled:cursor-not-allowed',
               )}
-              style={{ fontFamily: "'Playfair Display', serif" }}
               data-testid="join-game-btn"
             >
               {status === 'joining' ? 'Joining…' : 'Accept Challenge'}
@@ -128,11 +121,10 @@ export function Join() {
               <button
                 onClick={handleJoin}
                 className={cn(
-                  'w-full py-4 rounded-xl font-black text-lg',
+                  'w-full py-4 rounded-xl font-black text-lg font-display',
                   'bg-gold text-skunk-dark',
                   'hover:bg-gold-bright transition-all',
                 )}
-                style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 Try Again
               </button>

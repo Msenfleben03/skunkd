@@ -435,9 +435,6 @@ export function GameScreen({ className }: { className?: string }) {
   // ── Start screen ─────────────────────────────────────────────────────────
 
   if (phase === 'GAME_START') {
-    const bgStyle = {
-      background: 'radial-gradient(ellipse at 50% 35%, #1e4d35 0%, #0a0a16 60%, #060610 100%)',
-    };
     const feltOverlay = (
       <div
         className="absolute inset-0 pointer-events-none"
@@ -459,11 +456,11 @@ export function GameScreen({ className }: { className?: string }) {
     // ── Online game creation / waiting screen ────────────────────────────────
     if (onlineStep === 'menu' || onlineStep === 'creating') {
       return (
-        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', className)} style={bgStyle}>
+        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', 'bg-felt-gradient', className)}>
           {feltOverlay}{vignette}
           <div className="relative z-10 text-center px-8 max-w-xs w-full animate-float-in">
             <img src="/skunkd-logo.png" alt="SKUNK'D" className="w-24 h-24 object-contain mx-auto mb-4 opacity-90" />
-            <h2 className="text-xl font-black text-gold mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h2 className="text-xl font-black text-gold mb-6 font-display">
               Play Online
             </h2>
             {onlineError && <p className="text-red-400 text-xs mb-4">{onlineError}</p>}
@@ -475,8 +472,8 @@ export function GameScreen({ className }: { className?: string }) {
                   'w-full py-4 rounded-xl font-black text-lg bg-gold text-skunk-dark',
                   'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
                   'disabled:opacity-60 disabled:cursor-not-allowed',
+                  'font-display',
                 )}
-                style={{ fontFamily: "'Playfair Display', serif" }}
                 data-testid="create-game-btn"
               >
                 {onlineStep === 'creating' ? 'Creating…' : 'Create Game'}
@@ -502,11 +499,11 @@ export function GameScreen({ className }: { className?: string }) {
     // ── Waiting for opponent after creating game ──────────────────────────────
     if (onlineStep === 'waiting' && pendingGame) {
       return (
-        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', className)} style={bgStyle}>
+        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', 'bg-felt-gradient', className)}>
           {feltOverlay}{vignette}
           <div className="relative z-10 text-center px-8 max-w-xs w-full animate-float-in">
             <img src="/skunkd-logo.png" alt="SKUNK'D" className="w-20 h-20 object-contain mx-auto mb-4 opacity-80" />
-            <h2 className="text-xl font-black text-gold mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h2 className="text-xl font-black text-gold mb-2 font-display">
               Waiting for Opponent
             </h2>
             <p className="text-cream/40 text-xs mb-6">Share this code to challenge a friend:</p>
@@ -525,11 +522,11 @@ export function GameScreen({ className }: { className?: string }) {
     // ── Join by code input ────────────────────────────────────────────────────
     if (onlineStep === 'join-input') {
       return (
-        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', className)} style={bgStyle}>
+        <div className={cn('h-screen flex flex-col items-center justify-center relative overflow-hidden', 'bg-felt-gradient', className)}>
           {feltOverlay}{vignette}
           <div className="relative z-10 text-center px-8 max-w-xs w-full animate-float-in">
             <img src="/skunkd-logo.png" alt="SKUNK'D" className="w-24 h-24 object-contain mx-auto mb-4 opacity-90" />
-            <h2 className="text-xl font-black text-gold mb-6" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <h2 className="text-xl font-black text-gold mb-6 font-display">
               Enter Game Code
             </h2>
             <input
@@ -539,11 +536,10 @@ export function GameScreen({ className }: { className?: string }) {
               onChange={e => setJoinCode(e.target.value.toUpperCase())}
               maxLength={6}
               className={cn(
-                'w-full px-4 py-4 rounded-xl text-center text-2xl font-black tracking-widest mb-4',
+                'w-full px-4 py-4 rounded-xl text-center text-2xl font-black tracking-widest mb-4 font-display',
                 'bg-white/5 border border-white/10 text-gold placeholder-cream/20',
                 'focus:outline-none focus:border-gold/60 transition-colors',
               )}
-              style={{ fontFamily: "'Playfair Display', serif" }}
               data-testid="join-code-input"
               onKeyDown={e => e.key === 'Enter' && handleJoinWithCode()}
             />
@@ -552,11 +548,10 @@ export function GameScreen({ className }: { className?: string }) {
                 onClick={handleJoinWithCode}
                 disabled={joinCode.trim().length < 4}
                 className={cn(
-                  'w-full py-4 rounded-xl font-black text-lg bg-gold text-skunk-dark',
+                  'w-full py-4 rounded-xl font-black text-lg bg-gold text-skunk-dark font-display',
                   'hover:bg-gold-bright transition-all duration-150 active:scale-[0.97]',
                   'disabled:opacity-40 disabled:cursor-not-allowed',
                 )}
-                style={{ fontFamily: "'Playfair Display', serif" }}
               >
                 Join Game
               </button>
@@ -577,10 +572,9 @@ export function GameScreen({ className }: { className?: string }) {
       <div
         className={cn(
           'h-screen flex flex-col items-center justify-center',
-          'relative overflow-hidden',
+          'relative overflow-hidden bg-felt-gradient',
           className,
         )}
-        style={bgStyle}
       >
         {feltOverlay}{vignette}
 
@@ -596,8 +590,8 @@ export function GameScreen({ className }: { className?: string }) {
 
           {/* Tagline */}
           <p
-            className="animate-float-in text-cream/55 italic text-sm mb-1"
-            style={{ fontFamily: "'Playfair Display', serif", animationDelay: '0.1s' }}
+            className="animate-float-in text-cream/55 italic text-sm mb-1 font-display"
+            style={{ animationDelay: '0.1s' }}
           >
             The smell of failure is only one street away.
           </p>
@@ -618,7 +612,7 @@ export function GameScreen({ className }: { className?: string }) {
             {/* Primary CTA — vs AI */}
             <button
               className={cn(
-                'w-full rounded-xl py-4 px-8 font-black text-xl',
+                'w-full rounded-xl py-4 px-8 font-black text-xl font-display',
                 'bg-gold text-skunk-dark shadow-xl shadow-gold/30',
                 'hover:bg-gold-bright hover:shadow-gold/50 hover:scale-[1.02]',
                 'transition-all duration-150 active:scale-[0.97]',
@@ -627,7 +621,6 @@ export function GameScreen({ className }: { className?: string }) {
               onClick={handleStartVsAI}
               disabled={auth.loading}
               data-testid="deal-me-in-btn"
-              style={{ fontFamily: "'Playfair Display', serif" }}
             >
               {auth.loading ? 'Loading…' : "How 'Bout a Quick Game? (Solo)"}
             </button>
@@ -859,7 +852,7 @@ export function GameScreen({ className }: { className?: string }) {
         <div className="absolute inset-0 z-40 bg-black/70 flex items-center justify-center">
           <div className="text-center px-8">
             <div className="w-10 h-10 border-2 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-gold font-black text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+            <p className="text-gold font-black text-lg font-display">
               Opponent Disconnected
             </p>
             <p className="text-cream/40 text-sm mt-2">Waiting for them to reconnect...</p>
