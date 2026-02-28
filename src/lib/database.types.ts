@@ -92,23 +92,29 @@ export type Database = {
       }
       game_players: {
         Row: {
+          final_score: number
           game_id: string
           is_ai: boolean
           is_dealer: boolean
+          is_winner: boolean
           seat: number
           user_id: string
         }
         Insert: {
+          final_score?: number
           game_id: string
           is_ai?: boolean
           is_dealer?: boolean
+          is_winner?: boolean
           seat: number
           user_id: string
         }
         Update: {
+          final_score?: number
           game_id?: string
           is_ai?: boolean
           is_dealer?: boolean
+          is_winner?: boolean
           seat?: number
           user_id?: string
         }
@@ -251,6 +257,35 @@ export type Database = {
           },
         ]
       }
+      llm_calls: {
+        Row: {
+          called_at: string
+          id: string
+          task: string
+          user_id: string
+        }
+        Insert: {
+          called_at?: string
+          id?: string
+          task: string
+          user_id: string
+        }
+        Update: {
+          called_at?: string
+          id?: string
+          task?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "llm_calls_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -341,6 +376,9 @@ export type Database = {
       stats: {
         Row: {
           avg_cribbage_grade: number
+          best_crib_score: number
+          best_hand_score: number
+          best_pegging: number
           best_streak: number
           current_streak: number
           double_skunks_given: number
@@ -348,14 +386,24 @@ export type Database = {
           games_played: number
           highest_hand: number
           losses: number
+          optimal_discards: number
           skunks_given: number
           skunks_received: number
+          total_crib_points: number
+          total_discards: number
+          total_ev_deficit: number
+          total_hand_points: number
+          total_hands_played: number
+          total_pegging_points: number
           updated_at: string
           user_id: string
           wins: number
         }
         Insert: {
           avg_cribbage_grade?: number
+          best_crib_score?: number
+          best_hand_score?: number
+          best_pegging?: number
           best_streak?: number
           current_streak?: number
           double_skunks_given?: number
@@ -363,14 +411,24 @@ export type Database = {
           games_played?: number
           highest_hand?: number
           losses?: number
+          optimal_discards?: number
           skunks_given?: number
           skunks_received?: number
+          total_crib_points?: number
+          total_discards?: number
+          total_ev_deficit?: number
+          total_hand_points?: number
+          total_hands_played?: number
+          total_pegging_points?: number
           updated_at?: string
           user_id: string
           wins?: number
         }
         Update: {
           avg_cribbage_grade?: number
+          best_crib_score?: number
+          best_hand_score?: number
+          best_pegging?: number
           best_streak?: number
           current_streak?: number
           double_skunks_given?: number
@@ -378,8 +436,15 @@ export type Database = {
           games_played?: number
           highest_hand?: number
           losses?: number
+          optimal_discards?: number
           skunks_given?: number
           skunks_received?: number
+          total_crib_points?: number
+          total_discards?: number
+          total_ev_deficit?: number
+          total_hand_points?: number
+          total_hands_played?: number
+          total_pegging_points?: number
           updated_at?: string
           user_id?: string
           wins?: number
@@ -423,31 +488,69 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_llm_calls: { Args: never; Returns: undefined }
       get_game_history: {
-        Args: {
-          p_user_id: string
-          p_limit?: number
-        }
+        Args: { p_limit?: number; p_user_id: string }
         Returns: {
           game_id: string
-          played_at: string
           my_score: number
           my_winner: boolean
-          opponent_id: string | null
-          opponent_name: string
-          opponent_avatar: string | null
-          opponent_score: number
+          opponent_avatar: string
+          opponent_id: string
           opponent_is_ai: boolean
+          opponent_name: string
+          opponent_score: number
+          played_at: string
         }[]
       }
-      record_game_result: {
-        Args: {
-          p_won: boolean
-          p_player_score: number
-          p_opponent_score: number
-        }
-        Returns: undefined
-      }
+      get_user_game_ids: { Args: { uid: string }; Returns: string[] }
+      record_game_result:
+        | {
+            Args: {
+              p_opponent_score: number
+              p_player_score: number
+              p_won: boolean
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_best_crib?: number
+              p_best_hand?: number
+              p_best_pegging?: number
+              p_ev_deficit?: number
+              p_hands_played?: number
+              p_opponent_score: number
+              p_optimal_discards?: number
+              p_player_score: number
+              p_total_crib?: number
+              p_total_discards?: number
+              p_total_hand?: number
+              p_total_pegging?: number
+              p_won: boolean
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_best_crib?: number
+              p_best_hand?: number
+              p_best_pegging?: number
+              p_ev_deficit?: number
+              p_final_score?: number
+              p_game_id?: string
+              p_hands_played?: number
+              p_opponent_score: number
+              p_optimal_discards?: number
+              p_player_score: number
+              p_total_crib?: number
+              p_total_discards?: number
+              p_total_hand?: number
+              p_total_pegging?: number
+              p_won: boolean
+            }
+            Returns: undefined
+          }
     }
     Enums: {
       [_ in never]: never
