@@ -423,6 +423,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_game_history: {
+        Args: {
+          p_user_id: string
+          p_limit?: number
+        }
+        Returns: {
+          game_id: string
+          played_at: string
+          my_score: number
+          my_winner: boolean
+          opponent_id: string | null
+          opponent_name: string
+          opponent_avatar: string | null
+          opponent_score: number
+          opponent_is_ai: boolean
+        }[]
+      }
       record_game_result: {
         Args: {
           p_won: boolean
