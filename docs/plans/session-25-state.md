@@ -1,72 +1,35 @@
-# Session 25: Comprehensive Refactoring — COMPLETE
+# Session 26: Milestone 1 "Ship It" — State Checkpoint
 
-## Branch: `refactor/session-25`
+## Branch: `feat/milestone-1-ship-it`
 
-## All Phases Complete
+## Plan file: `docs/plans/2026-02-28-milestone-1-ship-it.md`
 
-### Phase 1: Quick Fixes — DONE (commit 97cd89b)
-- Fixed stale test assertion ("Deal Me In" → "How 'Bout a Quick Game?")
-- Increased exhaustive scoring test timeout to 120s
-- Removed write-only `opponentUserId` state from GameScreen
-- Fixed unused catch binding (catch(e) → catch) in 3 LLM components
-- Removed duplicate RANK_ORDER constant in crib-ev.ts
+## Tasks
 
-### Phase 2: Engine Dedup — DONE (commit 7b1cece)
-- Exported DANGEROUS_PEG_COUNTS from types.ts (removed 3 local copies)
-- Removed 4x buildFullDeck/buildPlaceholderDeck duplicates → createDeck()
-- Replaced inline card construction in ai.ts and crib-ev.ts
-- Created new src/engine/synth-state.ts with shared buildSynthPeggingState()
-- Removed unused myScore/opponentScore params from expectimaxPeggingPlay
-- Net: -131 lines
+### Task 1: Apply migration 008 to remote Supabase DB — PENDING
+- Run `npx supabase db push` to push migration 008 to prod
+- Verify 10 new columns exist in remote `user_stats` table
 
-### Phase 3: CSS Theme Dedup — DONE (commit ea3ffb6)
-- Added bg-felt-gradient and font-display @utility classes to index.css
-- Replaced inline radial-gradient in 4 files
-- Replaced 42 inline fontFamily instances across 17 files
-- Zero remaining inline fontFamily or gradient in src/
+### Task 2: Fix decisionLog clearing in online mode — PENDING
+- File: `src/engine/gameState.ts` — `handleLoadOnlineDeal` function (~line 500)
+- Bug: `decisionLog: []` on line ~519 wipes AI discard history
+- Fix: remove that one line so `...state` spreads the existing log
+- TDD: add test to `src/engine/__tests__/gameState.branches.test.ts`
 
-### Phase 4: GameScreen Split — DONE (commit 1134aad)
-- Created StartScreen.tsx (menu, online lobby, auth modal)
-- Created HandCompleteScreen.tsx (hand summary + coaching review)
-- Created ActiveGameLayout.tsx (board, hand, actions, chat, overlays)
-- GameScreen reduced from 893 → ~310 lines as orchestrator
+### Task 3: Add Rematch flow to GameOver screen — PENDING
+- Add `onRematch?: () => void` prop to `src/components/game/GameOver.tsx`
+- Wire through `src/components/game/ActiveGameLayout.tsx`
+- Implement logic in `src/components/game/GameScreen.tsx`:
+  - Creator: calls `createGame()` API, broadcasts `{ type: 'rematch', inviteCode }`, enters waiting state
+  - Joiner: receives rematch broadcast, auto-navigates to `/join/:inviteCode`
+- Tests: `src/components/game/__tests__/GameOver.test.tsx` (3 new tests)
 
-### Phase 5: React Compiler Fixes — DONE
-- ShowScoring.tsx: wrapped Math.random() in useMemo([])
-- DealAnimation.tsx: moved onCompleteRef.current assignment into useEffect
-- TurnTimer.tsx: same ref pattern fix
-- button.tsx / tabs.tsx: SKIPPED (module-level cva constants, not RC-affected, not cross-imported)
-- Fixed pre-existing type errors: removed unused PeggingState import, fixed expectimax test args
+### Task 4: Live E2E multiplayer re-test — MANUAL (skip subagent)
+### Task 5: Verify post-game summary charts — MANUAL (skip subagent)
 
-### Phase 6: Test Coverage — DONE (13 new test files, +295 tests)
-New test files created:
-- src/engine/__tests__/gameState.branches.test.ts (42 tests)
-- src/hooks/__tests__/useGame.test.ts (31 tests)
-- src/__tests__/App.test.tsx (6 tests)
-- src/pages/__tests__/HistoryPage.test.tsx (9 tests)
-- src/pages/__tests__/Join.test.tsx (12 tests)
-- src/components/game/__tests__/StartScreen.test.tsx (31 tests)
-- src/components/game/__tests__/HandCompleteScreen.test.tsx (17 tests)
-- src/components/game/__tests__/ActiveGameLayout.test.tsx (20 tests)
-- src/components/game/__tests__/ActionBar.test.tsx (29 tests)
-- src/components/auth/__tests__/AuthModal.test.tsx (26 tests)
-- src/components/chat/__tests__/ChatPanel.test.tsx (20 tests)
-- src/components/game/__tests__/ShowScoring.test.tsx (22 tests)
-- src/components/game/__tests__/TurnTimer.test.tsx (23 tests)
-
-### Phase 7: Final Verification — DONE
-- typecheck: PASS (zero errors)
-- lint: PASS (new files zero errors; pre-existing prototype warnings unchanged)
-- test: 47 files, 680 tests, ALL PASSING
-- build: SUCCESS (production build + PWA SW generated)
-
-## Final Test Status
-- 680 tests across 47 files — ALL PASSING (was 385 across 34)
-- Branch: 4+ commits ahead of master
-
-## Key Decisions
-- synth-state.ts evalCandidateEV takes an expectimaxFn callback for flexibility
-- ActiveGameLayout handles disconnect overlay's "Leave Game" via onReturnToMenu prop
-- StartScreen receives auth data as flat props (authUser, authLoading) instead of full context
-- Phase 2.5 (shared discard eval loop) SKIPPED per plan — different crib EV strategies
-- button/tabs variant extraction SKIPPED — module-level constants unaffected by React Compiler
+## Key Context
+- Execution approach: Subagent-Driven Development (one subagent per task + two review stages)
+- Roadmap design doc: `docs/plans/2026-02-28-feature-roadmap-design.md`
+- Full milestone list: Ship It → Rivalry → Viral (see design doc)
+- Session 25 completed: all refactoring merged to master (680 tests, 47 files)
+- Current test count: 680 across 47 files — all passing
