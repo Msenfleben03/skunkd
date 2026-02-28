@@ -41,6 +41,9 @@ export function cardLabel(card: Card): string {
   return `${card.rank} of ${SUIT_NAMES[card.suit]}`;
 }
 
+/** Pegging counts that hand control to the opponent — leaving these is penalised. */
+export const DANGEROUS_PEG_COUNTS: ReadonlySet<number> = new Set([5, 11, 21]);
+
 // Game phases
 export type Phase =
   | 'GAME_START'

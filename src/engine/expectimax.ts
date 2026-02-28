@@ -1,5 +1,6 @@
-import type { Card, GameState, Rank, Suit } from './types';
-import { RANKS, SUITS, cardValue, createCard } from './types';
+import type { Card, GameState } from './types';
+import { DANGEROUS_PEG_COUNTS, cardValue } from './types';
+import { createDeck } from './deck';
 import { scorePeggingPlay } from './pegging';
 
 // ---------------------------------------------------------------------------
@@ -30,20 +31,6 @@ function seededShuffle<T>(items: T[], seed: string | number): T[] {
     [arr[i], arr[j]] = [arr[j]!, arr[i]!];
   }
   return arr;
-}
-
-// ---------------------------------------------------------------------------
-// Full 52-card deck builder
-// ---------------------------------------------------------------------------
-
-function buildFullDeck(): Card[] {
-  const deck: Card[] = [];
-  for (const rank of RANKS) {
-    for (const suit of SUITS) {
-      deck.push(createCard(rank as Rank, suit as Suit));
-    }
-  }
-  return deck;
 }
 
 // ---------------------------------------------------------------------------
@@ -96,7 +83,7 @@ export function randomizeOpponentHand(
   }
 
   // Remaining available cards (full deck minus known)
-  const available = buildFullDeck().filter(c => !knownIds.has(c.id));
+  const available = createDeck().filter(c => !knownIds.has(c.id));
 
   // Shuffle with seed
   const shuffled = seededShuffle(available, seed);
@@ -161,10 +148,9 @@ function selectBestPeggingCard(playable: Card[], pile: readonly Card[]): Card {
   }
 
   // Priority 5: Avoid dangerous counts (5, 11, 21)
-  const DANGEROUS_COUNTS = new Set([5, 11, 21]);
   const safe = playable.filter(card => {
     const newCount = cardValue(card.rank) + count;
-    return !DANGEROUS_COUNTS.has(newCount);
+    return !DANGEROUS_PEG_COUNTS.has(newCount);
   });
 
   if (safe.length > 0) {
@@ -270,8 +256,6 @@ function greedyRollout(
  * with greedy rollout to depth D.
  *
  * @param gameState - Current game state with pegging pile
- * @param myScore - Current player score
- * @param opponentScore - Opponent score
  * @param determinizations - Number of random hand samples (default 20)
  * @param depth - Lookahead depth in plays (default 3)
  * @param seed - Optional seed for reproducibility
@@ -279,14 +263,10 @@ function greedyRollout(
  */
 export function expectimaxPeggingPlay(
   gameState: GameState,
-  myScore: number,
-  opponentScore: number,
   determinizations: number = 20,
   depth: number = 3,
   seed?: number,
 ): number {
-  void myScore;
-  void opponentScore;
 
   const currentPlayerIndex = gameState.pegging.currentPlayerIndex;
   const myHand = [...gameState.players[currentPlayerIndex]!.hand];

@@ -1,5 +1,6 @@
 import type { Card, Rank } from './types';
-import { RANKS, SUITS } from './types';
+import { RANKS } from './types';
+import { createDeck } from './deck';
 import { scoreHand } from './scoring';
 
 function sortedRankPair(r1: Rank, r2: Rank): string {
@@ -87,13 +88,7 @@ export function monteCartoCribEV(
 ): number {
   // Build deck of cards not yet known
   const knownIds = new Set(knownCards.map(c => c.id));
-  const remaining: Card[] = [];
-  for (const rank of RANKS) {
-    for (const suit of SUITS) {
-      const id = `${rank}-${suit}`;
-      if (!knownIds.has(id)) remaining.push({ rank, suit, id });
-    }
-  }
+  const remaining = createDeck().filter(c => !knownIds.has(c.id));
 
   // Need at least 3 unknown cards: 2 opponent discards + 1 starter
   if (remaining.length < 3) return lookupCribEV(discard[0], discard[1]);
