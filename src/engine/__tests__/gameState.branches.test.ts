@@ -66,6 +66,55 @@ function makeState(overrides: Partial<GameState> = {}): GameState {
   return { ...defaults, ...overrides };
 }
 
+// ── Bug fix: Go prompt — wrong player after last-card play ────────────────────
+
+describe('PLAY_CARD — Go turn assignment when current player exhausts hand', () => {
+  it('moves turn to opponent when current player plays last card and opponent cannot play', () => {
+    // Player 0 plays their last card (Ace, count 22→23). Player 1 has [J-S, Q-H]
+    // — both bust (10+23=33>31). With the bug, engine stays on P0 (no cards). Fix:
+    // engine must move to P1 so P1 can declare Go.
+    const state = makeState({
+      phase: 'PEGGING',
+      pegging: makePegging({
+        count: 22,
+        currentPlayerIndex: 0,
+        playerCards: [
+          [card('A', 'H')],
+          [card('J', 'S'), card('Q', 'H')],
+        ],
+      }),
+    });
+
+    const next = gameReducer(state, { type: 'PLAY_CARD', playerIndex: 0, cardId: 'A-H' });
+
+    // Engine should switch to P1 (opponent) so they can declare Go — not stay on P0 (empty hand)
+    expect(next.phase).toBe('PEGGING');
+    expect(next.pegging.currentPlayerIndex).toBe(1);
+  });
+
+  it('stays on current player when opponent cannot play but current player still has cards', () => {
+    // Player 0 plays a card (count 20→24). Player 1 has [J-S] (bust: 10+24=34>31).
+    // Player 0 still has [2-H] remaining (2+24=26≤31). Engine should stay on P0.
+    const state = makeState({
+      phase: 'PEGGING',
+      pegging: makePegging({
+        count: 20,
+        currentPlayerIndex: 0,
+        playerCards: [
+          [card('4', 'H'), card('2', 'H')],
+          [card('J', 'S')],
+        ],
+      }),
+    });
+
+    const next = gameReducer(state, { type: 'PLAY_CARD', playerIndex: 0, cardId: '4-H' });
+
+    // P1 can't play (10+24=34>31) but P0 still has 2-H → stay on P0
+    expect(next.phase).toBe('PEGGING');
+    expect(next.pegging.currentPlayerIndex).toBe(0);
+  });
+});
+
 // ── GAME_OVER detection — PLAY_CARD ──────────────────────────────────────────
 
 describe('GAME_OVER detection during PLAY_CARD', () => {

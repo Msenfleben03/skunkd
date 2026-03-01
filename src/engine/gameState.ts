@@ -317,8 +317,9 @@ function handlePlayCard(state: GameState, playerIndex: number, cardId: string): 
     return { ...state, players: newPlayers, handStats: newHandStats, pegging: resetPegging, decisionLog: newDecisionLog };
   }
 
-  // Normal play — switch to other player if they can play, otherwise stay
-  const nextPlayer = canPlay(newPlayerCards[otherPlayer], newCount)
+  // Normal play — switch to other player if they can play, OR if current player
+  // has no cards left (so opponent can declare Go rather than empty-handed player)
+  const nextPlayer = (canPlay(newPlayerCards[otherPlayer], newCount) || newPlayerCards[playerIndex].length === 0)
     ? otherPlayer
     : playerIndex;
 

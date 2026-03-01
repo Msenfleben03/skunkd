@@ -480,6 +480,108 @@ describe('useGame — returnToMenu', () => {
   });
 });
 
+describe('useGame — show phase labels use localPlayerIndex not hardcoded seat 0', () => {
+  beforeEach(() => { vi.useFakeTimers(); });
+  afterEach(() => { vi.useRealTimers(); });
+
+  it('labels SHOW_NONDEALER as "Your Hand" when localPlayerIndex matches the non-dealer', async () => {
+    // dealer=0, so non-dealer=1. With localPlayerIndex=1, non-dealer show = "Your Hand".
+    const { result } = renderHook(() => useGame({ isOnline: true, localPlayerIndex: 1 }));
+
+    const hand0 = [
+      createCard('A', 'H'), createCard('2', 'H'), createCard('3', 'H'),
+      createCard('4', 'H'), createCard('5', 'H'), createCard('6', 'H'),
+    ];
+    const hand1 = [
+      createCard('A', 'S'), createCard('2', 'S'), createCard('3', 'S'),
+      createCard('4', 'S'), createCard('5', 'S'), createCard('6', 'S'),
+    ];
+
+    // Load deal: both get 6 cards, dealer=0
+    act(() => {
+      result.current.dispatchRemoteAction({
+        type: 'LOAD_ONLINE_DEAL',
+        hands: [hand0, hand1],
+        starter: createCard('K', 'D'),
+        dealerIndex: 0,
+        handNumber: 1,
+      });
+    });
+
+    // Both players discard cards 4+5 (5-x, 6-x), keeping A,2,3,4
+    act(() => {
+      result.current.dispatchRemoteAction({ type: 'DISCARD', playerIndex: 0, cardIds: ['5-H', '6-H'] });
+      result.current.dispatchRemoteAction({ type: 'DISCARD', playerIndex: 1, cardIds: ['5-S', '6-S'] });
+    });
+
+    // CUT_STARTER: auto-cut fires after 1200ms
+    await act(async () => { vi.advanceTimersByTime(1500); });
+
+    // PEGGING: non-dealer (P1) plays first, alternate through all 4 cards each
+    act(() => {
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: 'A-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: 'A-H' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: '2-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: '2-H' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: '3-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: '3-H' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: '4-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: '4-H' });
+    });
+
+    // All cards exhausted → SHOW_NONDEALER
+    expect(result.current.gameState.phase).toBe('SHOW_NONDEALER');
+    // Non-dealer (1) === localPlayerIndex (1) → should be "Your Hand"
+    expect(result.current.showScoring?.label).toBe('Your Hand');
+  });
+
+  it('labels SHOW_NONDEALER as "Opponent\'s Hand" when localPlayerIndex is the dealer (seat 0)', async () => {
+    // dealer=0, non-dealer=1. With localPlayerIndex=0, non-dealer show = "Opponent's Hand".
+    const { result } = renderHook(() => useGame({ isOnline: true, localPlayerIndex: 0 }));
+
+    const hand0 = [
+      createCard('A', 'H'), createCard('2', 'H'), createCard('3', 'H'),
+      createCard('4', 'H'), createCard('5', 'H'), createCard('6', 'H'),
+    ];
+    const hand1 = [
+      createCard('A', 'S'), createCard('2', 'S'), createCard('3', 'S'),
+      createCard('4', 'S'), createCard('5', 'S'), createCard('6', 'S'),
+    ];
+
+    act(() => {
+      result.current.dispatchRemoteAction({
+        type: 'LOAD_ONLINE_DEAL',
+        hands: [hand0, hand1],
+        starter: createCard('K', 'D'),
+        dealerIndex: 0,
+        handNumber: 1,
+      });
+    });
+
+    act(() => {
+      result.current.dispatchRemoteAction({ type: 'DISCARD', playerIndex: 0, cardIds: ['5-H', '6-H'] });
+      result.current.dispatchRemoteAction({ type: 'DISCARD', playerIndex: 1, cardIds: ['5-S', '6-S'] });
+    });
+
+    await act(async () => { vi.advanceTimersByTime(1500); });
+
+    act(() => {
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: 'A-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: 'A-H' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: '2-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: '2-H' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: '3-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: '3-H' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 1, cardId: '4-S' });
+      result.current.dispatchRemoteAction({ type: 'PLAY_CARD', playerIndex: 0, cardId: '4-H' });
+    });
+
+    expect(result.current.gameState.phase).toBe('SHOW_NONDEALER');
+    // Non-dealer (1) !== localPlayerIndex (0) → "Opponent's Hand"
+    expect(result.current.showScoring?.label).toBe("Opponent's Hand");
+  });
+});
+
 describe('useGame — dispatchRemoteAction', () => {
   it('is exposed as a function', () => {
     const { result } = renderHook(() => useGame());

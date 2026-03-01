@@ -99,6 +99,8 @@ export function ActiveGameLayout({
     phase === 'DISCARD_TO_CRIB' ||
     (phase === 'PEGGING' && pegging.currentPlayerIndex === humanPlayerIndex);
 
+  const hasDiscarded = phase === 'DISCARD_TO_CRIB' && player.hand.length === 4;
+
   return (
     <div
       className={cn(
@@ -179,6 +181,7 @@ export function ActiveGameLayout({
         selectedCardIds={[...selectedCardIds]}
         pegging={pegging}
         humanPlayerIndex={humanPlayerIndex}
+        hasDiscarded={hasDiscarded}
         onDiscard={onDiscard}
         onPlay={onPlay}
         onGo={onGo}

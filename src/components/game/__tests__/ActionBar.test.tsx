@@ -53,6 +53,23 @@ function renderBar(
   );
 }
 
+// ── Bug fix: DISCARD_TO_CRIB waiting state ────────────────────────────────────
+
+describe('ActionBar — DISCARD_TO_CRIB waiting state', () => {
+  it('shows disabled "Waiting for opponent…" when player has already discarded', () => {
+    renderBar('DISCARD_TO_CRIB', { hasDiscarded: true });
+    const btn = screen.getByTestId('action-btn');
+    expect(btn).toHaveTextContent('Waiting for opponent');
+    expect(btn).toBeDisabled();
+  });
+
+  it('still shows normal discard UI when hasDiscarded is false', () => {
+    renderBar('DISCARD_TO_CRIB', { hasDiscarded: false });
+    const btn = screen.getByTestId('action-btn');
+    expect(btn).toHaveTextContent('Select cards');
+  });
+});
+
 // ── Container presence ────────────────────────────────────────────────────────
 
 describe('ActionBar — container', () => {

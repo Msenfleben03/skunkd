@@ -205,7 +205,7 @@ export function useGame(options: UseGameOptions = {}): UseGameReturn {
         cards: hand,
         starter,
         scoring,
-        label: nonDealerIdx === HUMAN_PLAYER ? 'Your Hand' : "Opponent's Hand",
+        label: nonDealerIdx === localPlayerIndex ? 'Your Hand' : "Opponent's Hand",
       });
     } else if (phase === 'SHOW_DEALER') {
       const hand = players[dealerIdx].hand;
@@ -214,7 +214,7 @@ export function useGame(options: UseGameOptions = {}): UseGameReturn {
         cards: hand,
         starter,
         scoring,
-        label: dealerIdx === HUMAN_PLAYER ? 'Your Hand' : "Opponent's Hand",
+        label: dealerIdx === localPlayerIndex ? 'Your Hand' : "Opponent's Hand",
       });
     } else if (phase === 'SHOW_CRIB') {
       const scoring = scoreHand([...crib], starter, true);
@@ -222,7 +222,7 @@ export function useGame(options: UseGameOptions = {}): UseGameReturn {
         cards: crib,
         starter,
         scoring,
-        label: dealerIdx === HUMAN_PLAYER ? 'Your Crib' : "Opponent's Crib",
+        label: dealerIdx === localPlayerIndex ? 'Your Crib' : "Opponent's Crib",
       });
     } else {
       setShowScoring(null);

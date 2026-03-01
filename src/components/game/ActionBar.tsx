@@ -8,6 +8,8 @@ export interface ActionBarProps {
   pegging: PeggingState;
   /** Which player index is the human (usually 0) */
   humanPlayerIndex: number;
+  /** True when local player has already discarded; shows waiting state */
+  hasDiscarded?: boolean;
   onDiscard: () => void;
   onPlay: () => void;
   onGo: () => void;
@@ -53,6 +55,7 @@ export function ActionBar({
   selectedCardIds,
   pegging,
   humanPlayerIndex,
+  hasDiscarded = false,
   onDiscard,
   onPlay,
   onGo,
@@ -91,6 +94,14 @@ export function ActionBar({
       break;
 
     case 'DISCARD_TO_CRIB': {
+      if (hasDiscarded) {
+        button = (
+          <button className={DISABLED_BTN} disabled data-testid="action-btn">
+            Waiting for opponent…
+          </button>
+        );
+        break;
+      }
       const count = selectedCardIds.length;
       const ready = count === 2;
       button = (
