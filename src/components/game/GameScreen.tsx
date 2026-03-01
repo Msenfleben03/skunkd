@@ -6,7 +6,8 @@ import { useGameChannel } from '@/hooks/useGameChannel';
 import { useAuthContext } from '@/context/AuthContext';
 import { supabase } from '@/lib/supabase';
 import { createGame, dealHand, updateGameStatus } from '@/lib/gameApi';
-import type { GameSummary } from '@/lib/gameApi';
+import type { JoinGameResult } from '@/lib/gameApi';
+import { saveActiveGame, loadActiveGame, clearActiveGame } from '@/lib/activeGameStorage';
 import { recordGameResult } from '@/lib/statsApi';
 import { computeGamePerformance } from '@/lib/gameStatsHelper';
 import { StartScreen } from './StartScreen';
@@ -68,6 +69,7 @@ export function GameScreen({ className }: { className?: string }) {
   const [pendingGame, setPendingGame] = useState<PendingOnlineGame | null>(null);
   const [joinCode, setJoinCode] = useState('');
   const [onlineError, setOnlineError] = useState<string | null>(null);
+  const [resumeGame] = useState(() => loadActiveGame());
 
   // Wire up game channel for online multiplayer
   const channel = useGameChannel(
@@ -91,13 +93,13 @@ export function GameScreen({ className }: { className?: string }) {
 
   // ── Read join state from navigation (joiner arriving from /join/:code) ────
   useEffect(() => {
-    const state = location.state as { joinedGame?: GameSummary } | null;
+    const state = location.state as { joinedGame?: JoinGameResult } | null;
     if (state?.joinedGame) {
-      const { game } = state.joinedGame;
+      const { game, localSeat } = state.joinedGame;
       setActiveOnlineGameId(game.id);
       setOnlineStep(null);
       setGameMode('online');
-      setLocalPlayerSeat(1); // joiner is always seat 1
+      setLocalPlayerSeat(localSeat);
       // Clear location state to prevent re-triggering on re-render
       window.history.replaceState({}, '');
     }
@@ -263,6 +265,7 @@ export function GameScreen({ className }: { className?: string }) {
     try {
       if (!auth.user) await auth.signInAsGuest();
       const { game } = await createGame('vs_human');
+      saveActiveGame({ gameId: game.id, inviteCode: game.invite_code, seat: 0 });
       setPendingGame({ gameId: game.id, inviteCode: game.invite_code });
       setActiveOnlineGameId(game.id);
       setOnlineStep('waiting');
@@ -276,6 +279,12 @@ export function GameScreen({ className }: { className?: string }) {
     if (joinCode.trim().length < 4) return;
     window.location.href = `/join/${joinCode.trim().toUpperCase()}`;
   }, [joinCode]);
+
+  const handleResumeGame = useCallback(() => {
+    if (resumeGame) {
+      window.location.href = `/join/${resumeGame.inviteCode}`;
+    }
+  }, [resumeGame]);
 
   // ── Stats persistence ─────────────────────────────────────────────────────
 
@@ -300,6 +309,7 @@ export function GameScreen({ className }: { className?: string }) {
   useEffect(() => {
     if (gameMode !== 'online' || phase !== 'GAME_OVER' || winner === null) return;
 
+    clearActiveGame();
     channel.broadcastAction({ type: 'game_complete', winnerIndex: winner });
 
     if (localPlayerSeat === 0 && activeOnlineGameId) {
@@ -391,6 +401,7 @@ export function GameScreen({ className }: { className?: string }) {
   }, [localReadyNextHand, opponentReadyNextHand, nextHand]);
 
   const handleReturnToMenu = useCallback(() => {
+    clearActiveGame();
     setGameMode('local');
     setActiveOnlineGameId(null);
     returnToMenu();
@@ -400,6 +411,7 @@ export function GameScreen({ className }: { className?: string }) {
     if (!activeOnlineGameId) return;
     try {
       const { game } = await createGame('vs_human');
+      saveActiveGame({ gameId: game.id, inviteCode: game.invite_code, seat: 0 });
       channel.broadcastAction({ type: 'rematch', inviteCode: game.invite_code });
       newGame();
       setGameMode('online');
@@ -431,7 +443,7 @@ export function GameScreen({ className }: { className?: string }) {
         onlineStep={onlineStep}
         setOnlineStep={setOnlineStep}
         pendingGame={pendingGame}
-        setPendingGame={setPendingGame}
+        setPendingGame={(g) => { if (!g) clearActiveGame(); setPendingGame(g); }}
         joinCode={joinCode}
         setJoinCode={setJoinCode}
         onlineError={onlineError}
@@ -444,6 +456,8 @@ export function GameScreen({ className }: { className?: string }) {
         onJoinWithCode={handleJoinWithCode}
         onNavigateStats={() => navigate('/stats')}
         onNavigateHistory={() => navigate('/history')}
+        resumeGame={resumeGame}
+        onResumeGame={handleResumeGame}
         className={className}
       />
     );

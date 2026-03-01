@@ -13,6 +13,11 @@ export interface GameSummary {
   players: GamePlayer[];
 }
 
+/** Extended result from joinGame — includes the caller's seat number. */
+export interface JoinGameResult extends GameSummary {
+  localSeat: 0 | 1;
+}
+
 // ── Create / Join ─────────────────────────────────────────────────────────────
 
 /**
@@ -47,23 +52,45 @@ export async function createGame(
 }
 
 /**
- * Join a game by invite code. Adds the current user as seat 1.
+ * Join a game by invite code. Idempotent: returns existing seat if the caller
+ * is already a player (reconnect). Rejects if the game is active and the
+ * caller is not already registered as a player.
  */
-export async function joinGame(inviteCode: string): Promise<GameSummary> {
+export async function joinGame(inviteCode: string): Promise<JoinGameResult> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Must be signed in to join a game');
 
-  // Find game by invite code — only games the user can see (RLS)
+  // Allow both waiting and active games — needed for reconnect after navigation
   const { data: game, error: findError } = await supabase
     .from('games')
     .select()
     .eq('invite_code', inviteCode.toUpperCase())
-    .eq('status', 'waiting')
+    .in('status', ['waiting', 'active'])
     .single();
 
   if (findError || !game) throw new Error('Game not found or no longer available');
 
-  // Add player as seat 1
+  // Check if caller is already registered in this game
+  const { data: existingPlayers } = await supabase
+    .from('game_players')
+    .select()
+    .eq('game_id', game.id);
+
+  const myRow = (existingPlayers ?? []).find(
+    (p: GamePlayer) => p.user_id === user.id
+  );
+
+  if (myRow) {
+    // Already a player — return current state with existing seat (reconnect)
+    const players = await getGamePlayers(game.id);
+    return { game, players, localSeat: myRow.seat as 0 | 1 };
+  }
+
+  if (game.status === 'active') {
+    throw new Error('Game already in progress');
+  }
+
+  // Normal new-join path — add caller as seat 1
   const { error: joinError } = await supabase
     .from('game_players')
     .insert({ game_id: game.id, user_id: user.id, seat: 1 });
@@ -74,7 +101,7 @@ export async function joinGame(inviteCode: string): Promise<GameSummary> {
   await supabase.from('games').update({ status: 'active' }).eq('id', game.id);
 
   const players = await getGamePlayers(game.id);
-  return { game: { ...game, status: 'active' }, players };
+  return { game: { ...game, status: 'active' }, players, localSeat: 1 };
 }
 
 // ── State ─────────────────────────────────────────────────────────────────────

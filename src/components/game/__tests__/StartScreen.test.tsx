@@ -338,3 +338,38 @@ describe('StartScreen — join-input step (onlineStep: "join-input")', () => {
     expect(setOnlineStep).toHaveBeenCalledWith('menu');
   });
 });
+
+// ── Resume Game button tests ──────────────────────────────────────────────────
+
+describe('StartScreen — resume game button', () => {
+  it('does not show resume-game button when resumeGame prop is null', () => {
+    render(<StartScreen {...buildProps({ resumeGame: null })} />);
+    expect(screen.queryByTestId('resume-game-btn')).not.toBeInTheDocument();
+  });
+
+  it('shows resume-game button when resumeGame prop is provided', () => {
+    render(
+      <StartScreen
+        {...buildProps({
+          resumeGame: { inviteCode: 'XYZ789' },
+          onResumeGame: vi.fn(),
+        })}
+      />,
+    );
+    expect(screen.getByTestId('resume-game-btn')).toBeInTheDocument();
+  });
+
+  it('calls onResumeGame when the resume button is clicked', () => {
+    const onResumeGame = vi.fn();
+    render(
+      <StartScreen
+        {...buildProps({
+          resumeGame: { inviteCode: 'XYZ789' },
+          onResumeGame,
+        })}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('resume-game-btn'));
+    expect(onResumeGame).toHaveBeenCalledOnce();
+  });
+});

@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useAuthContext } from '@/context/AuthContext';
 import { joinGame } from '@/lib/gameApi';
+import { saveActiveGame } from '@/lib/activeGameStorage';
 
 export function Join() {
   const { code } = useParams<{ code: string }>();
@@ -37,6 +38,7 @@ export function Join() {
       }
 
       const gameSummary = await joinGame(code);
+      saveActiveGame({ gameId: gameSummary.game.id, inviteCode: code.toUpperCase(), seat: gameSummary.localSeat });
       // Navigate to game screen with joined game context
       navigate('/', { state: { joinedGame: gameSummary } });
     } catch (e) {

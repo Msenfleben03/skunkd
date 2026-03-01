@@ -26,6 +26,9 @@ export interface StartScreenProps {
   onJoinWithCode: () => void;
   onNavigateStats: () => void;
   onNavigateHistory: () => void;
+  /** Active game session from localStorage — shows Resume button when present. */
+  resumeGame?: { inviteCode: string } | null;
+  onResumeGame?: () => void;
   className?: string;
 }
 
@@ -65,6 +68,8 @@ export function StartScreen({
   onJoinWithCode,
   onNavigateStats,
   onNavigateHistory,
+  resumeGame,
+  onResumeGame,
   className,
 }: StartScreenProps) {
   // ── Online game creation / waiting screen ────────────────────────────────
@@ -223,6 +228,22 @@ export function StartScreen({
           className="animate-float-in flex flex-col gap-3"
           style={{ animationDelay: '0.3s' }}
         >
+          {/* Resume active multiplayer game (shown when localStorage has an active session) */}
+          {resumeGame && onResumeGame && (
+            <button
+              className={cn(
+                'w-full rounded-xl py-4 px-8 font-black text-xl font-display',
+                'bg-gold text-skunk-dark shadow-xl shadow-gold/30',
+                'hover:bg-gold-bright hover:shadow-gold/50 hover:scale-[1.02]',
+                'transition-all duration-150 active:scale-[0.97]',
+              )}
+              onClick={onResumeGame}
+              data-testid="resume-game-btn"
+            >
+              ▶ Resume Game
+            </button>
+          )}
+
           {/* Primary CTA — vs AI */}
           <button
             className={cn(
