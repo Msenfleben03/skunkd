@@ -1,19 +1,40 @@
-// Smoke tests for HistoryPage.tsx
-// HistoryPage is a static accordion page — no auth, no data fetching.
-// Tests confirm: title renders, sections are present, back button fires navigate,
-// and accordion expand/collapse works.
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import type { GameHistoryItem } from '@/lib/gameApi';
 
-// useNavigate is the only router hook used by HistoryPage.
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
+const { mockUseAuth } = vi.hoisted(() => ({
+  mockUseAuth: vi.fn(),
+}));
+
+vi.mock('@/context/AuthContext', () => ({
+  useAuthContext: () => mockUseAuth(),
+}));
+
+const mockFetchGameHistory = vi.fn();
+vi.mock('@/lib/gameApi', () => ({
+  fetchGameHistory: (...args: unknown[]) => mockFetchGameHistory(...args),
+}));
+
 import { HistoryPage } from '../HistoryPage';
+
+const sampleGame: GameHistoryItem = {
+  gameId: 'game-1',
+  playedAt: '2026-02-28T12:00:00Z',
+  myScore: 121,
+  iWon: true,
+  opponentId: 'opp-1',
+  opponentName: 'Alice',
+  opponentAvatar: null,
+  opponentScore: 95,
+  opponentIsAi: false,
+};
 
 function renderPage() {
   return render(
@@ -26,84 +47,77 @@ function renderPage() {
 describe('HistoryPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  it('renders the page heading', () => {
-    renderPage();
-    expect(screen.getByRole('heading', { name: /history/i })).toBeInTheDocument();
-  });
-
-  it('renders the subtitle blurb', () => {
-    renderPage();
-    expect(
-      screen.getByText(/400 years of cards, cons, and submarines/i)
-    ).toBeInTheDocument();
-  });
-
-  it('renders all nine accordion section buttons', () => {
-    renderPage();
-    const sectionIds = [
-      'origin',
-      'evolution',
-      'rules',
-      'variations',
-      'culture',
-      'lingo',
-      'stats',
-      'skill',
-      'fun',
-    ];
-    sectionIds.forEach(id => {
-      expect(screen.getByTestId(`history-section-${id}`)).toBeInTheDocument();
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-123', displayName: 'TestPlayer', isGuest: false },
+      loading: false,
     });
   });
 
-  it('section content is hidden until the button is clicked', () => {
+  it('shows loading state initially', () => {
+    mockFetchGameHistory.mockReturnValueOnce(new Promise(() => {}));
     renderPage();
-    // "Sir John Suckling" appears in the Origin section body.
-    expect(screen.queryByText(/Sir John Suckling/)).toBeNull();
+    expect(screen.getByTestId('history-loading')).toBeInTheDocument();
   });
 
-  it('expands a section when clicked and shows its content', () => {
+  it('shows empty state when no games', async () => {
+    mockFetchGameHistory.mockResolvedValueOnce([]);
     renderPage();
-
-    fireEvent.click(screen.getByTestId('history-section-origin'));
-
-    expect(screen.getByText(/Sir John Suckling/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId('history-empty')).toBeInTheDocument()
+    );
   });
 
-  it('collapses an expanded section on second click', () => {
+  it('renders a game card for each result', async () => {
+    mockFetchGameHistory.mockResolvedValueOnce([sampleGame]);
     renderPage();
-
-    const originBtn = screen.getByTestId('history-section-origin');
-    fireEvent.click(originBtn); // expand
-    expect(screen.getByText(/Sir John Suckling/)).toBeInTheDocument();
-
-    fireEvent.click(originBtn); // collapse
-    expect(screen.queryByText(/Sir John Suckling/)).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByTestId('game-card-game-1')).toBeInTheDocument()
+    );
+    expect(screen.getByText('Alice')).toBeInTheDocument();
+    expect(screen.getByText('121')).toBeInTheDocument();
+    expect(screen.getByText('95')).toBeInTheDocument();
   });
 
-  it('multiple sections can be open simultaneously', () => {
+  it('shows Win badge for won games', async () => {
+    mockFetchGameHistory.mockResolvedValueOnce([sampleGame]);
     renderPage();
-
-    fireEvent.click(screen.getByTestId('history-section-origin'));
-    fireEvent.click(screen.getByTestId('history-section-rules'));
-
-    // Origin content visible
-    expect(screen.getByText(/Sir John Suckling/)).toBeInTheDocument();
-    // Rules content visible — unique phrase from the Rules section
-    expect(screen.getByText(/121 points/)).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByTestId('result-badge-game-1')).toBeInTheDocument()
+    );
+    expect(screen.getByTestId('result-badge-game-1')).toHaveTextContent('Win');
   });
 
-  it('back button navigates to /', () => {
+  it('shows Loss badge for lost games', async () => {
+    const lostGame: GameHistoryItem = {
+      ...sampleGame,
+      iWon: false,
+      myScore: 85,
+      opponentScore: 121,
+    };
+    mockFetchGameHistory.mockResolvedValueOnce([lostGame]);
     renderPage();
-
-    fireEvent.click(screen.getByTestId('history-back-btn'));
-    expect(mockNavigate).toHaveBeenCalledWith('/');
+    await waitFor(() =>
+      expect(screen.getByTestId('result-badge-game-1')).toBeInTheDocument()
+    );
+    expect(screen.getByTestId('result-badge-game-1')).toHaveTextContent('Loss');
   });
 
-  it('renders the source attribution footer', () => {
+  it('shows sign-in prompt when user is not authenticated', () => {
+    mockUseAuth.mockReturnValue({ user: null, loading: false });
     renderPage();
-    expect(screen.getByText(/Cribbage Research Report/i)).toBeInTheDocument();
+    expect(screen.getByTestId('history-unauthenticated')).toBeInTheDocument();
+  });
+
+  it('calls fetchGameHistory with user id', async () => {
+    mockUseAuth.mockReturnValue({
+      user: { id: 'user-abc' },
+      loading: false,
+    });
+    mockFetchGameHistory.mockResolvedValueOnce([]);
+    renderPage();
+    await waitFor(() =>
+      expect(screen.getByTestId('history-empty')).toBeInTheDocument()
+    );
+    expect(mockFetchGameHistory).toHaveBeenCalledWith('user-abc');
   });
 });

@@ -314,6 +314,10 @@ export function GameScreen({ className }: { className?: string }) {
         playerScore: player.score,
         opponentScore: opponent.score,
         ...perfStats,
+        ...(activeOnlineGameId !== null && {
+          gameId: activeOnlineGameId,
+          finalScore: gameState.players[humanPlayerIndex].score,
+        }),
       }).catch(console.error);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps

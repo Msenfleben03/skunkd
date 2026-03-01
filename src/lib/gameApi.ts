@@ -194,6 +194,52 @@ export async function updateGameStatus(
   if (error) throw new Error(`Game status update failed: ${error.message}`);
 }
 
+// ── History ───────────────────────────────────────────────────────────────────
+
+export interface GameHistoryItem {
+  gameId: string;
+  playedAt: string;
+  myScore: number;
+  iWon: boolean;
+  opponentId: string | null;
+  opponentName: string;
+  opponentAvatar: string | null;
+  opponentScore: number;
+  opponentIsAi: boolean;
+}
+
+interface RawHistoryRow {
+  game_id: string;
+  played_at: string;
+  my_score: number;
+  my_winner: boolean;
+  opponent_id: string | null;
+  opponent_name: string;
+  opponent_avatar: string | null;
+  opponent_score: number;
+  opponent_is_ai: boolean;
+}
+
+/** Fetch completed game history for the given user (online games only, most recent first). */
+export async function fetchGameHistory(userId: string): Promise<GameHistoryItem[]> {
+  const { data, error } = await supabase.rpc('get_game_history', {
+    p_user_id: userId,
+    p_limit: 50,
+  });
+  if (error || !data) return [];
+  return (data as RawHistoryRow[]).map((row) => ({
+    gameId: row.game_id,
+    playedAt: row.played_at,
+    myScore: row.my_score,
+    iWon: row.my_winner,
+    opponentId: row.opponent_id,
+    opponentName: row.opponent_name,
+    opponentAvatar: row.opponent_avatar,
+    opponentScore: row.opponent_score,
+    opponentIsAi: row.opponent_is_ai,
+  }));
+}
+
 // ── Realtime ──────────────────────────────────────────────────────────────────
 
 /**
