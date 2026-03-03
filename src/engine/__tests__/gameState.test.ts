@@ -378,6 +378,69 @@ describe('gameReducer — DECLARE_GO', () => {
     expect(result.handStats[0].pegging).toBe(1);
     expect(result.handStats[1].pegging).toBe(0);
   });
+
+  it('immediately resolves allGo when other player has no cards after Go', () => {
+    // Scenario from live E2E test: player 0 played their last card (ace, count=28).
+    // Player 1 has Jack+6 (both bust at 28). Player 1 says Go.
+    // Bug: engine was switching to player 0 (empty-handed) to force a second Go click.
+    // Fix: should immediately award last-card point to player 0 and reset.
+    const state = makeState({
+      phase: 'PEGGING',
+      starter: card('K', 'D'),
+      players: [
+        makePlayer({ score: 5 }),
+        makePlayer({ score: 3 }),
+      ],
+      pegging: makePegging({
+        count: 28,
+        sequence: [card('A', 'H')],
+        pile: [card('A', 'H')],
+        currentPlayerIndex: 1, // player 1's turn (player 0 played last and has no cards)
+        goState: [false, false],
+        playerCards: [
+          [], // player 0 has no cards left
+          [card('J', 'S'), card('6', 'C')], // J=10+28=38>31, 6+28=34>31 — both bust
+        ],
+        lastCardPlayerIndex: 0,
+      }),
+    });
+
+    const result = gameReducer(state, { type: 'DECLARE_GO', playerIndex: 1 });
+
+    // allGo should resolve immediately: no second Go click from empty-handed player 0
+    expect(result.pegging.count).toBe(0);
+    expect(result.pegging.sequence).toHaveLength(0);
+    expect(result.pegging.goState).toEqual([false, false]);
+    // Player 0 (lastCardPlayerIndex) gets the 1pt last-card bonus
+    expect(result.players[0].score).toBe(6);
+    expect(result.players[1].score).toBe(3);
+  });
+
+  it('does NOT auto-resolve allGo when other player still has playable cards', () => {
+    // Player 0 says Go (can't play), but player 1 still has a playable card.
+    // Engine should switch turn to player 1, NOT auto-allGo.
+    const state = makeState({
+      phase: 'PEGGING',
+      starter: card('K', 'D'),
+      pegging: makePegging({
+        count: 25,
+        currentPlayerIndex: 0,
+        goState: [false, false],
+        playerCards: [
+          [card('7', 'H')], // 7 + 25 = 32 > 31, can't play
+          [card('3', 'S')], // 3 + 25 = 28 ≤ 31, CAN play
+        ],
+        lastCardPlayerIndex: null,
+      }),
+    });
+
+    const result = gameReducer(state, { type: 'DECLARE_GO', playerIndex: 0 });
+
+    // Turn passes to player 1, goState[0]=true, NOT resolved yet
+    expect(result.pegging.goState[0]).toBe(true);
+    expect(result.pegging.currentPlayerIndex).toBe(1);
+    expect(result.pegging.count).toBe(25); // count unchanged
+  });
 });
 
 describe('gameReducer — ADVANCE_SHOW', () => {

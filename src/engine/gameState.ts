@@ -421,8 +421,67 @@ function handleDeclareGo(state: GameState, playerIndex: number): GameState {
     };
   }
 
-  // Not all Go yet — pass turn to next player
+  // Not all Go yet — but if the other player also can't play, treat as allGo immediately.
+  // This covers the case where the other player is empty-handed (played their last card)
+  // and should never be forced to click Go manually.
   const otherPlayer = (playerIndex + 1) % state.players.length;
+  const otherCanPlay = canPlay(state.pegging.playerCards[otherPlayer], state.pegging.count);
+
+  if (!otherCanPlay) {
+    // Other player can't play either — resolve allGo now
+    const finalGoState = newGoState.map(() => true);
+    let newPlayers = state.players;
+    let newHandStats = state.handStats;
+    if (state.pegging.lastCardPlayerIndex !== null) {
+      newPlayers = addScore(state.players, state.pegging.lastCardPlayerIndex, 1);
+      newHandStats = updateHandStats(state.handStats, state.pegging.lastCardPlayerIndex, 'pegging', 1);
+
+      if (newPlayers[state.pegging.lastCardPlayerIndex].score >= WIN_SCORE) {
+        return {
+          ...state,
+          phase: 'GAME_OVER',
+          players: newPlayers,
+          handStats: newHandStats,
+          winner: state.pegging.lastCardPlayerIndex,
+        };
+      }
+    }
+
+    const allCardsPlayed = state.pegging.playerCards.every(cards => cards.length === 0);
+    if (allCardsPlayed) {
+      return {
+        ...state,
+        phase: 'SHOW_NONDEALER',
+        players: newPlayers,
+        handStats: newHandStats,
+        pegging: {
+          ...state.pegging,
+          count: 0,
+          sequence: [],
+          goState: finalGoState.map(() => false),
+          lastCardPlayerIndex: state.pegging.lastCardPlayerIndex,
+        },
+      };
+    }
+
+    const nextLeader = state.pegging.lastCardPlayerIndex !== null
+      ? (state.pegging.lastCardPlayerIndex + 1) % state.players.length
+      : (state.dealerIndex + 1) % state.players.length;
+
+    return {
+      ...state,
+      players: newPlayers,
+      handStats: newHandStats,
+      pegging: {
+        ...state.pegging,
+        count: 0,
+        sequence: [],
+        goState: finalGoState.map(() => false),
+        currentPlayerIndex: nextLeader,
+        lastCardPlayerIndex: state.pegging.lastCardPlayerIndex,
+      },
+    };
+  }
 
   return {
     ...state,

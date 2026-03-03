@@ -197,4 +197,34 @@ describe('PlayArea', () => {
     );
     expect(screen.queryByLabelText(/Pegging count/)).toBeNull();
   });
+
+  it('shows discard prompt when player has not yet discarded', () => {
+    render(
+      <PlayArea
+        phase="DISCARD_TO_CRIB"
+        starter={null}
+        pegging={emptyPegging}
+        crib={[]}
+        humanPlayerIndex={0}
+        hasDiscarded={false}
+      />
+    );
+    expect(screen.getByText(/Pick 2 cards/)).toBeInTheDocument();
+    expect(screen.queryByText(/Waiting for opponent/)).toBeNull();
+  });
+
+  it('shows "Waiting for opponent" status banner after local player discards', () => {
+    render(
+      <PlayArea
+        phase="DISCARD_TO_CRIB"
+        starter={null}
+        pegging={emptyPegging}
+        crib={[]}
+        humanPlayerIndex={0}
+        hasDiscarded={true}
+      />
+    );
+    expect(screen.getByText(/Waiting for opponent/)).toBeInTheDocument();
+    expect(screen.queryByText(/Pick 2 cards/)).toBeNull();
+  });
 });

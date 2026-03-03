@@ -227,7 +227,7 @@ export function useGame(options: UseGameOptions = {}): UseGameReturn {
     } else {
       setShowScoring(null);
     }
-  }, [gameState.phase]);
+  }, [gameState.phase, localPlayerIndex]);
 
   // ── Pegging score toast ────────────────────────────────────────────────────
 

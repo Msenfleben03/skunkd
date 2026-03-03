@@ -146,6 +146,7 @@ export function ActiveGameLayout({
               pegging={pegging}
               crib={crib}
               humanPlayerIndex={humanPlayerIndex}
+              hasDiscarded={hasDiscarded}
             />
           </div>
         )}

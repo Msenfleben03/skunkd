@@ -10,6 +10,8 @@ export interface PlayAreaProps {
   crib: readonly Card[];
   /** Whose turn it is (0 = human/non-dealer, 1 = AI/dealer) */
   humanPlayerIndex: number;
+  /** True when local player has already discarded; changes the status banner */
+  hasDiscarded?: boolean;
   /** Optional phase message (scoring events, go, etc.) */
   message?: string;
   className?: string;
@@ -18,9 +20,10 @@ export interface PlayAreaProps {
 function buildStatusText(
   phase: Phase,
   isHumanTurn: boolean,
+  hasDiscarded?: boolean,
 ): string | null {
   switch (phase) {
-    case 'DISCARD_TO_CRIB': return 'Pick 2 cards to salt the crib';
+    case 'DISCARD_TO_CRIB': return hasDiscarded ? 'Waiting for opponent…' : 'Pick 2 cards to salt the crib';
     case 'CUT_STARTER': return 'Cut for the starter card';
     case 'PEGGING': return isHumanTurn ? 'Your turn — tap a card to play' : 'Opponent thinking…';
     case 'SHOW_NONDEALER': return 'Counting your hand…';
@@ -52,6 +55,7 @@ export function PlayArea({
   pegging,
   crib,
   humanPlayerIndex,
+  hasDiscarded,
   message,
   className,
 }: PlayAreaProps) {
@@ -65,7 +69,7 @@ export function PlayArea({
   const isDanger = isPegging && (pegging.count === 5 || pegging.count === 21 || pegging.count === 26);
   const isMax = isPegging && pegging.count === 31;
 
-  const statusText = message ?? buildStatusText(phase, isHumanTurn);
+  const statusText = message ?? buildStatusText(phase, isHumanTurn, hasDiscarded);
   const mascotSrc = getMascotImage(phase, isHumanTurn);
 
   return (
